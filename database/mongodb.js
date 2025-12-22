@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
-import { DB_URL, NODE_ENV } from "../config/env.js";
+import { DB_URI, NODE_ENV } from "../config/env.js";
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(DB_URL);
+    await mongoose.connect(DB_URI);
     console.log(`Connected to MongoDB in ${NODE_ENV} mode`);
   } catch (error) {
-    console.error("Error connecting to MongoDB", error);
+    console.error("Error connecting to MongoDB: ", error);
 
     // Using process.exit(1) here is important because it immediately stops the Node.js process with a failure code (1).
     // This signals to any parent process or deployment tool that the application did not start successfully.
