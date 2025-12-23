@@ -1,8 +1,8 @@
 import express from 'express';
 import { PORT } from './config/env.js';
 import { connectDB } from './database/mongodb.js';
-import authRouter from './routes/auth.routes.js';
 import errorMiddleware from './middlewares/error.middlewares.js';
+import authRouter from './routes/auth.routes.js';
 const app = express();
 
 app.use(express.json());

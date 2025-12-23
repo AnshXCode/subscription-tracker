@@ -455,17 +455,17 @@ When you set up MongoDB Atlas (MongoDB's cloud service), it automatically create
 ┌─────────────────────────────────────┐
 │      MongoDB Atlas Cluster          │
 │                                     │
-│  ┌──────────┐    ┌──────────┐      │
-│  │ Primary  │◄───┤Secondary │      │
-│  │  Node    │    │  Node    │      │
-│  └────┬─────┘    └────┬─────┘      │
-│       │               │            │
-│       └───────┬───────┘            │
-│               │                    │
-│         ┌─────▼─────┐              │
-│         │ Secondary │              │
-│         │   Node    │              │
-│         └───────────┘              │
+│  ┌──────────┐    ┌──────────┐       │
+│  │ Primary  │◄───┤Secondary │       │
+│  │  Node    │    │  Node    │       │
+│  └────┬─────┘    └────┬─────┘       │
+│       │               │             │
+│       └───────┬───────┘             │
+│               │                     │
+│         ┌─────▼─────┐               │
+│         │ Secondary │               │
+│         │   Node    │               │
+│         └───────────┘               │
 │                                     │
 │  All nodes sync data automatically  │
 └─────────────────────────────────────┘

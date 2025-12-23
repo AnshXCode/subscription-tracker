@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Name is required'],
         trim: true,
     },
     email: {
@@ -15,7 +14,7 @@ const userSchema = new mongoose.Schema({
         match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address'],
     },
     password: {
-        type: String,
+        type: mongoose.Schema.Types.Mixed,
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters long'],
         trim: true,
