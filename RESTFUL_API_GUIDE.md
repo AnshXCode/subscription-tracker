@@ -50,6 +50,7 @@
 ### REST vs SOAP vs GraphQL
 
 **REST:**
+
 - Uses HTTP methods (GET, POST, PUT, DELETE)
 - Stateless
 - Resource-based URLs
@@ -57,12 +58,14 @@
 - Simple and lightweight
 
 **SOAP:**
+
 - XML-based protocol
 - More complex with built-in security
 - Requires WSDL for definition
 - Heavier than REST
 
 **GraphQL:**
+
 - Query language for APIs
 - Single endpoint
 - Client specifies exact data needed
@@ -77,6 +80,7 @@
 Everything in REST is a **resource**. A resource is any information that can be named and addressed. Resources are identified by URIs (Uniform Resource Identifiers).
 
 **Examples:**
+
 - `/users` - Collection of users
 - `/users/123` - Specific user with ID 123
 - `/users/123/subscriptions` - Subscriptions belonging to user 123
@@ -84,6 +88,7 @@ Everything in REST is a **resource**. A resource is any information that can be 
 ### 2. Representations
 
 Resources have **representations** - different ways the same resource can be presented. Common formats:
+
 - JSON (most common)
 - XML
 - HTML
@@ -94,12 +99,14 @@ Resources have **representations** - different ways the same resource can be pre
 Each request must be independent and contain all necessary information. The server doesn't store client context between requests.
 
 **Stateless Example:**
+
 ```http
 GET /api/users/123 HTTP/1.1
 Authorization: Bearer token123
 ```
 
 **Stateful (Anti-pattern):**
+
 ```http
 GET /api/users/123 HTTP/1.1
 Session-ID: abc123  # Server must remember this session
@@ -108,6 +115,7 @@ Session-ID: abc123  # Server must remember this session
 ### 4. Uniform Interface
 
 All resources follow the same interface pattern:
+
 - Consistent URL structure
 - Standard HTTP methods
 - Standard status codes
@@ -118,6 +126,7 @@ All resources follow the same interface pattern:
 Optional principle where responses include links to related resources, allowing clients to discover available actions dynamically.
 
 **Example:**
+
 ```json
 {
   "id": 123,
@@ -140,12 +149,14 @@ Optional principle where responses include links to related resources, allowing 
 **Purpose:** Fetch data without side effects (idempotent and safe)
 
 **Characteristics:**
+
 - Should not modify server state
 - Can be cached
 - Can be bookmarked
 - Parameters in query string
 
 **Examples:**
+
 ```http
 GET /api/users
 GET /api/users/123
@@ -154,6 +165,7 @@ GET /api/users/123/subscriptions
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -170,12 +182,14 @@ GET /api/users/123/subscriptions
 **Purpose:** Create new resources or perform actions
 
 **Characteristics:**
+
 - Not idempotent (multiple calls create multiple resources)
 - Not safe (has side effects)
 - Request body contains data
 - Returns 201 Created on success
 
 **Examples:**
+
 ```http
 POST /api/users
 Content-Type: application/json
@@ -188,6 +202,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -205,12 +220,14 @@ Content-Type: application/json
 **Purpose:** Update or replace entire resource
 
 **Characteristics:**
+
 - Idempotent (multiple calls have same effect)
 - Not safe
 - Replaces entire resource
 - Creates resource if it doesn't exist (some implementations)
 
 **Examples:**
+
 ```http
 PUT /api/users/123
 Content-Type: application/json
@@ -222,6 +239,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -239,12 +257,14 @@ Content-Type: application/json
 **Purpose:** Partially update a resource
 
 **Characteristics:**
+
 - Idempotent (should be)
 - Not safe
 - Updates only specified fields
 - More efficient than PUT for partial updates
 
 **Examples:**
+
 ```http
 PATCH /api/users/123
 Content-Type: application/json
@@ -255,6 +275,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -272,16 +293,19 @@ Content-Type: application/json
 **Purpose:** Delete a resource
 
 **Characteristics:**
+
 - Idempotent (deleting twice has same effect)
 - Not safe
 - Usually returns 204 No Content or 200 OK
 
 **Examples:**
+
 ```http
 DELETE /api/users/123
 ```
 
 **Response:**
+
 ```http
 HTTP/1.1 204 No Content
 ```
@@ -300,11 +324,13 @@ or
 **Purpose:** Get allowed methods for a resource (CORS preflight)
 
 **Example:**
+
 ```http
 OPTIONS /api/users
 ```
 
 **Response:**
+
 ```http
 HTTP/1.1 200 OK
 Allow: GET, POST, OPTIONS
@@ -316,6 +342,7 @@ Access-Control-Allow-Methods: GET, POST, OPTIONS
 **Purpose:** Get response headers without body (useful for checking if resource exists)
 
 **Example:**
+
 ```http
 HEAD /api/users/123
 ```
@@ -329,6 +356,7 @@ HEAD /api/users/123
 #### 1. Use Nouns, Not Verbs
 
 **Good:**
+
 ```
 GET /api/users
 POST /api/users
@@ -337,6 +365,7 @@ DELETE /api/users/123
 ```
 
 **Bad:**
+
 ```
 GET /api/getUsers
 POST /api/createUser
@@ -347,6 +376,7 @@ POST /api/deleteUser/123
 #### 2. Use Plural Nouns for Collections
 
 **Good:**
+
 ```
 GET /api/users
 GET /api/subscriptions
@@ -354,6 +384,7 @@ GET /api/products
 ```
 
 **Bad:**
+
 ```
 GET /api/user
 GET /api/subscription
@@ -363,6 +394,7 @@ GET /api/product
 #### 3. Use Hierarchical Structure
 
 **Good:**
+
 ```
 GET /api/users/123/subscriptions
 GET /api/users/123/subscriptions/456
@@ -370,6 +402,7 @@ POST /api/users/123/subscriptions
 ```
 
 **Bad:**
+
 ```
 GET /api/userSubscriptions?userId=123
 GET /api/subscription/456?userId=123
@@ -378,12 +411,14 @@ GET /api/subscription/456?userId=123
 #### 4. Use Hyphens, Not Underscores
 
 **Good:**
+
 ```
 GET /api/user-profiles
 GET /api/subscription-plans
 ```
 
 **Bad:**
+
 ```
 GET /api/user_profiles
 GET /api/subscription_plans
@@ -392,12 +427,14 @@ GET /api/subscription_plans
 #### 5. Use Lowercase Letters
 
 **Good:**
+
 ```
 GET /api/users
 GET /api/subscription-plans
 ```
 
 **Bad:**
+
 ```
 GET /api/Users
 GET /api/SubscriptionPlans
@@ -406,12 +443,14 @@ GET /api/SubscriptionPlans
 #### 6. Avoid File Extensions
 
 **Good:**
+
 ```
 GET /api/users
 GET /api/users/123
 ```
 
 **Bad:**
+
 ```
 GET /api/users.json
 GET /api/users/123.xml
@@ -420,6 +459,7 @@ GET /api/users/123.xml
 #### 7. Use Query Parameters for Filtering, Sorting, Pagination
 
 **Good:**
+
 ```
 GET /api/users?page=1&limit=10
 GET /api/users?status=active&sort=name&order=asc
@@ -427,6 +467,7 @@ GET /api/users?search=john&role=admin
 ```
 
 **Bad:**
+
 ```
 GET /api/users/page/1/limit/10
 GET /api/users/status/active/sort/name
@@ -435,12 +476,14 @@ GET /api/users/status/active/sort/name
 ### Common URL Patterns
 
 #### Collection Resources
+
 ```
 GET    /api/users              # List all users
 POST   /api/users              # Create new user
 ```
 
 #### Item Resources
+
 ```
 GET    /api/users/123          # Get specific user
 PUT    /api/users/123          # Replace user
@@ -449,6 +492,7 @@ DELETE /api/users/123          # Delete user
 ```
 
 #### Sub-resources
+
 ```
 GET    /api/users/123/subscriptions           # Get user's subscriptions
 POST   /api/users/123/subscriptions           # Create subscription for user
@@ -457,6 +501,7 @@ DELETE /api/users/123/subscriptions/456       # Delete subscription
 ```
 
 #### Actions (Use Sparingly)
+
 ```
 POST /api/users/123/activate
 POST /api/subscriptions/456/cancel
@@ -470,6 +515,7 @@ POST /api/orders/789/refund
 ### 2xx Success
 
 #### 200 OK
+
 Standard success response. Used for GET, PUT, PATCH requests.
 
 ```json
@@ -480,6 +526,7 @@ Standard success response. Used for GET, PUT, PATCH requests.
 ```
 
 #### 201 Created
+
 Resource successfully created. Used for POST requests.
 
 ```json
@@ -491,6 +538,7 @@ Resource successfully created. Used for POST requests.
 ```
 
 #### 204 No Content
+
 Success with no response body. Commonly used for DELETE requests.
 
 ```http
@@ -498,6 +546,7 @@ HTTP/1.1 204 No Content
 ```
 
 #### 202 Accepted
+
 Request accepted but processing not completed. Used for async operations.
 
 ```json
@@ -511,17 +560,21 @@ Request accepted but processing not completed. Used for async operations.
 ### 3xx Redirection
 
 #### 301 Moved Permanently
+
 Resource permanently moved to new URL.
 
 #### 302 Found (Temporary Redirect)
+
 Resource temporarily moved.
 
 #### 304 Not Modified
+
 Resource not modified since last request (caching).
 
 ### 4xx Client Errors
 
 #### 400 Bad Request
+
 Invalid request syntax or parameters.
 
 ```json
@@ -538,6 +591,7 @@ Invalid request syntax or parameters.
 ```
 
 #### 401 Unauthorized
+
 Authentication required or failed.
 
 ```json
@@ -551,6 +605,7 @@ Authentication required or failed.
 ```
 
 #### 403 Forbidden
+
 Authenticated but not authorized for this resource.
 
 ```json
@@ -564,6 +619,7 @@ Authenticated but not authorized for this resource.
 ```
 
 #### 404 Not Found
+
 Resource not found.
 
 ```json
@@ -577,6 +633,7 @@ Resource not found.
 ```
 
 #### 405 Method Not Allowed
+
 HTTP method not allowed for this resource.
 
 ```http
@@ -585,6 +642,7 @@ Allow: GET, POST
 ```
 
 #### 409 Conflict
+
 Resource conflict (e.g., duplicate email).
 
 ```json
@@ -598,6 +656,7 @@ Resource conflict (e.g., duplicate email).
 ```
 
 #### 422 Unprocessable Entity
+
 Valid syntax but semantic errors (validation errors).
 
 ```json
@@ -615,6 +674,7 @@ Valid syntax but semantic errors (validation errors).
 ```
 
 #### 429 Too Many Requests
+
 Rate limit exceeded.
 
 ```json
@@ -631,6 +691,7 @@ Rate limit exceeded.
 ### 5xx Server Errors
 
 #### 500 Internal Server Error
+
 Generic server error.
 
 ```json
@@ -644,9 +705,11 @@ Generic server error.
 ```
 
 #### 502 Bad Gateway
+
 Invalid response from upstream server.
 
 #### 503 Service Unavailable
+
 Service temporarily unavailable (maintenance, overload).
 
 ```json
@@ -661,6 +724,7 @@ Service temporarily unavailable (maintenance, overload).
 ```
 
 #### 504 Gateway Timeout
+
 Upstream server timeout.
 
 ---
@@ -670,6 +734,7 @@ Upstream server timeout.
 ### Request Headers
 
 #### Content-Type
+
 Specifies the media type of the request body.
 
 ```http
@@ -679,6 +744,7 @@ Content-Type: multipart/form-data
 ```
 
 #### Accept
+
 Specifies acceptable response media types.
 
 ```http
@@ -687,6 +753,7 @@ Accept: application/json, application/xml
 ```
 
 #### Authorization
+
 Contains authentication credentials.
 
 ```http
@@ -695,6 +762,7 @@ Authorization: Basic base64(username:password)
 ```
 
 #### Custom Headers
+
 Use prefix `X-` for custom headers (though this is being deprecated).
 
 ```http
@@ -705,6 +773,7 @@ X-Request-ID: req-123
 ### Request Body
 
 #### JSON (Most Common)
+
 ```json
 {
   "name": "John Doe",
@@ -714,6 +783,7 @@ X-Request-ID: req-123
 ```
 
 #### Form Data
+
 ```http
 Content-Type: application/x-www-form-urlencoded
 
@@ -721,6 +791,7 @@ name=John+Doe&email=john%40example.com&age=30
 ```
 
 #### Multipart Form Data
+
 Used for file uploads.
 
 ```http
@@ -743,6 +814,7 @@ Content-Type: image/jpeg
 #### Standard JSON Response Structure
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -759,6 +831,7 @@ Content-Type: image/jpeg
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -777,6 +850,7 @@ Content-Type: image/jpeg
 ```
 
 #### Collection Response
+
 ```json
 {
   "success": true,
@@ -802,17 +876,20 @@ Content-Type: image/jpeg
 ### Response Headers
 
 #### Content-Type
+
 ```http
 Content-Type: application/json; charset=utf-8
 ```
 
 #### Cache-Control
+
 ```http
 Cache-Control: public, max-age=3600
 Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### ETag
+
 For cache validation.
 
 ```http
@@ -820,6 +897,7 @@ ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"
 ```
 
 #### Location
+
 For redirects and created resources.
 
 ```http
@@ -833,6 +911,7 @@ Location: /api/users/123
 ### Authentication Methods
 
 #### 1. API Keys
+
 Simple but less secure. Passed in headers or query parameters.
 
 ```http
@@ -841,6 +920,7 @@ X-API-Key: abc123def456
 ```
 
 #### 2. Basic Authentication
+
 Username and password encoded in base64.
 
 ```http
@@ -849,6 +929,7 @@ Authorization: Basic base64(username:password)
 ```
 
 #### 3. Bearer Token (JWT)
+
 Most common for modern APIs. Token passed in Authorization header.
 
 ```http
@@ -857,6 +938,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 #### 4. OAuth 2.0
+
 Industry standard for authorization. Uses access tokens.
 
 ```http
@@ -867,6 +949,7 @@ Authorization: Bearer access_token_here
 ### Authorization Patterns
 
 #### Role-Based Access Control (RBAC)
+
 Users have roles, roles have permissions.
 
 ```javascript
@@ -876,7 +959,7 @@ const authorize = (roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: { message: "Forbidden" }
+        error: { message: "Forbidden" },
       });
     }
     next();
@@ -884,10 +967,11 @@ const authorize = (roles) => {
 };
 
 // Usage
-router.get('/admin/users', authorize(['admin']), getUsers);
+router.get("/admin/users", authorize(["admin"]), getUsers);
 ```
 
 #### Resource-Based Authorization
+
 Check if user owns the resource.
 
 ```javascript
@@ -896,7 +980,7 @@ const checkOwnership = async (req, res, next) => {
   if (resource.userId !== req.user.id) {
     return res.status(403).json({
       success: false,
-      error: { message: "Forbidden" }
+      error: { message: "Forbidden" },
     });
   }
   next();
@@ -944,6 +1028,7 @@ const checkOwnership = async (req, res, next) => {
 ### Error Categories
 
 #### Validation Errors (422)
+
 ```json
 {
   "success": false,
@@ -959,6 +1044,7 @@ const checkOwnership = async (req, res, next) => {
 ```
 
 #### Authentication Errors (401)
+
 ```json
 {
   "success": false,
@@ -970,6 +1056,7 @@ const checkOwnership = async (req, res, next) => {
 ```
 
 #### Authorization Errors (403)
+
 ```json
 {
   "success": false,
@@ -981,6 +1068,7 @@ const checkOwnership = async (req, res, next) => {
 ```
 
 #### Not Found Errors (404)
+
 ```json
 {
   "success": false,
@@ -992,6 +1080,7 @@ const checkOwnership = async (req, res, next) => {
 ```
 
 #### Server Errors (500)
+
 ```json
 {
   "success": false,
@@ -1008,22 +1097,22 @@ const checkOwnership = async (req, res, next) => {
 // Error middleware example
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
-  
+  let message = err.message || "Internal Server Error";
+
   // Don't expose stack trace in production
   const error = {
-    code: err.code || 'INTERNAL_ERROR',
+    code: err.code || "INTERNAL_ERROR",
     message: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   };
-  
+
   res.status(statusCode).json({
     success: false,
     error,
     meta: {
       timestamp: new Date().toISOString(),
-      path: req.path
-    }
+      path: req.path,
+    },
   });
 };
 ```
@@ -1041,23 +1130,27 @@ const errorHandler = (err, req, res, next) => {
 ### Versioning Strategies
 
 #### 1. URL Path Versioning (Most Common)
+
 ```
 GET /api/v1/users
 GET /api/v2/users
 ```
 
 #### 2. Header Versioning
+
 ```http
 GET /api/users
 Accept: application/vnd.api+json;version=2
 ```
 
 #### 3. Query Parameter Versioning
+
 ```
 GET /api/users?version=2
 ```
 
 #### 4. Subdomain Versioning
+
 ```
 GET https://v1.api.example.com/users
 GET https://v2.api.example.com/users
@@ -1089,11 +1182,13 @@ Warning: 299 - "This API version is deprecated. Please migrate to v2."
 ### Pagination
 
 #### Offset-Based Pagination
+
 ```
 GET /api/users?page=1&limit=10
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1110,11 +1205,13 @@ GET /api/users?page=1&limit=10
 ```
 
 #### Cursor-Based Pagination (Better for Large Datasets)
+
 ```
 GET /api/users?cursor=eyJpZCI6MTIzfQ&limit=10
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1136,6 +1233,7 @@ GET /api/users?email[contains]=@example.com
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1162,6 +1260,7 @@ GET /api/users?fields=id,name,email
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1196,15 +1295,19 @@ GET /api/users?q=john+doe
 ### Rate Limiting Strategies
 
 #### 1. Fixed Window
+
 Limit requests per fixed time window (e.g., 100 requests per minute).
 
 #### 2. Sliding Window
+
 More accurate, tracks requests in rolling time window.
 
 #### 3. Token Bucket
+
 Allows bursts of requests up to bucket capacity.
 
 #### 4. Leaky Bucket
+
 Smooth rate limiting, processes requests at constant rate.
 
 ### Rate Limit Headers
@@ -1240,7 +1343,7 @@ X-RateLimit-Reset: 1642248000
 ### Implementation Example
 
 ```javascript
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -1248,15 +1351,15 @@ const limiter = rateLimit({
   message: {
     success: false,
     error: {
-      code: 'RATE_LIMIT_EXCEEDED',
-      message: 'Too many requests from this IP'
-    }
+      code: "RATE_LIMIT_EXCEEDED",
+      message: "Too many requests from this IP",
+    },
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.use('/api/', limiter);
+app.use("/api/", limiter);
 ```
 
 ---
@@ -1266,21 +1369,25 @@ app.use('/api/', limiter);
 ### Cache-Control Headers
 
 #### Public Caching
+
 ```http
 Cache-Control: public, max-age=3600
 ```
 
 #### Private Caching
+
 ```http
 Cache-Control: private, max-age=3600
 ```
 
 #### No Caching
+
 ```http
 Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### Conditional Requests (ETag)
+
 ```http
 GET /api/users/123
 If-None-Match: "33a64df551425fcc55e4d42a148795d9f25f89d4"
@@ -1380,11 +1487,13 @@ ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"
 ### Good Patterns
 
 #### 1. Resource-Based URLs
+
 ```
 GET /api/users/123/subscriptions
 ```
 
 #### 2. Consistent Response Format
+
 ```json
 {
   "success": true,
@@ -1393,6 +1502,7 @@ GET /api/users/123/subscriptions
 ```
 
 #### 3. Proper Error Handling
+
 ```json
 {
   "success": false,
@@ -1404,11 +1514,13 @@ GET /api/users/123/subscriptions
 ```
 
 #### 4. Pagination
+
 ```
 GET /api/users?page=1&limit=10
 ```
 
 #### 5. Filtering and Sorting
+
 ```
 GET /api/users?status=active&sort=name
 ```
@@ -1416,12 +1528,14 @@ GET /api/users?status=active&sort=name
 ### Anti-patterns to Avoid
 
 #### 1. Using Verbs in URLs
+
 ```
 ❌ POST /api/createUser
 ✅ POST /api/users
 ```
 
 #### 2. Inconsistent Naming
+
 ```
 ❌ GET /api/user
    GET /api/subscriptions
@@ -1430,36 +1544,42 @@ GET /api/users?status=active&sort=name
 ```
 
 #### 3. Returning HTML Errors
+
 ```
 ❌ <html><body>Error 404</body></html>
 ✅ {"success": false, "error": {"code": "NOT_FOUND"}}
 ```
 
 #### 4. Ignoring HTTP Methods
+
 ```
 ❌ POST /api/users/123/delete
 ✅ DELETE /api/users/123
 ```
 
 #### 5. Exposing Implementation Details
+
 ```
 ❌ {"error": "SQLSyntaxErrorException: Table 'users' doesn't exist"}
 ✅ {"error": {"code": "INTERNAL_ERROR", "message": "An error occurred"}}
 ```
 
 #### 6. Not Using Status Codes Properly
+
 ```
 ❌ Always returning 200 OK with error in body
 ✅ Using appropriate status codes (400, 404, 500, etc.)
 ```
 
 #### 7. Inconsistent Response Formats
+
 ```
 ❌ Sometimes returning {data: [...]}, sometimes just [...]
 ✅ Always use consistent format
 ```
 
 #### 8. Not Handling Edge Cases
+
 ```
 ❌ Assuming data always exists
 ✅ Check for null/undefined and return 404
@@ -1474,25 +1594,25 @@ GET /api/users?status=active&sort=name
 **Always validate and sanitize inputs:**
 
 ```javascript
-import { body, validationResult } from 'express-validator';
+import { body, validationResult } from "express-validator";
 
 const validateUser = [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 8 }),
-  body('name').trim().escape(),
+  body("email").isEmail().normalizeEmail(),
+  body("password").isLength({ min: 8 }),
+  body("name").trim().escape(),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
-          details: errors.array()
-        }
+          code: "VALIDATION_ERROR",
+          details: errors.array(),
+        },
       });
     }
     next();
-  }
+  },
 ];
 ```
 
@@ -1505,7 +1625,7 @@ const validateUser = [
 const query = `SELECT * FROM users WHERE email = '${email}'`;
 
 // ✅ Safe
-const query = 'SELECT * FROM users WHERE email = ?';
+const query = "SELECT * FROM users WHERE email = ?";
 db.query(query, [email]);
 ```
 
@@ -1514,16 +1634,18 @@ db.query(query, [email]);
 **Sanitize outputs and use Content Security Policy:**
 
 ```javascript
-import helmet from 'helmet';
+import helmet from "helmet";
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"]
-    }
-  }
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  })
+);
 ```
 
 ### 4. CSRF Protection
@@ -1531,7 +1653,7 @@ app.use(helmet({
 **Use CSRF tokens for state-changing operations:**
 
 ```javascript
-import csrf from 'csurf';
+import csrf from "csurf";
 
 const csrfProtection = csrf({ cookie: true });
 app.use(csrfProtection);
@@ -1552,14 +1674,14 @@ app.use(csrfProtection);
 ```javascript
 const checkPermission = async (req, res, next) => {
   const resource = await Resource.findById(req.params.id);
-  
-  if (resource.userId !== req.user.id && req.user.role !== 'admin') {
+
+  if (resource.userId !== req.user.id && req.user.role !== "admin") {
     return res.status(403).json({
       success: false,
-      error: { code: 'FORBIDDEN' }
+      error: { code: "FORBIDDEN" },
     });
   }
-  
+
   next();
 };
 ```
@@ -1569,14 +1691,14 @@ const checkPermission = async (req, res, next) => {
 **Prevent abuse with rate limiting:**
 
 ```javascript
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 100,
 });
 
-app.use('/api/', limiter);
+app.use("/api/", limiter);
 ```
 
 ### 8. HTTPS Only
@@ -1584,10 +1706,10 @@ app.use('/api/', limiter);
 **Always use HTTPS in production:**
 
 ```javascript
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https') {
-      res.redirect(`https://${req.header('host')}${req.url}`);
+    if (req.header("x-forwarded-proto") !== "https") {
+      res.redirect(`https://${req.header("host")}${req.url}`);
     } else {
       next();
     }
@@ -1600,7 +1722,7 @@ if (process.env.NODE_ENV === 'production') {
 **Use security headers:**
 
 ```javascript
-import helmet from 'helmet';
+import helmet from "helmet";
 
 app.use(helmet());
 ```
@@ -1614,9 +1736,9 @@ const logSecurityEvent = (event, req) => {
   logger.warn({
     event,
     ip: req.ip,
-    userAgent: req.get('user-agent'),
+    userAgent: req.get("user-agent"),
     path: req.path,
-    timestamp: new Date()
+    timestamp: new Date(),
   });
 };
 ```
@@ -1628,6 +1750,7 @@ const logSecurityEvent = (event, req) => {
 ### 1. Database Optimization
 
 #### Indexing
+
 ```javascript
 // Create indexes on frequently queried fields
 userSchema.index({ email: 1 });
@@ -1635,6 +1758,7 @@ userSchema.index({ createdAt: -1 });
 ```
 
 #### Query Optimization
+
 ```javascript
 // ❌ N+1 Problem
 const users = await User.find();
@@ -1643,10 +1767,11 @@ for (const user of users) {
 }
 
 // ✅ Use populate/join
-const users = await User.find().populate('subscriptions');
+const users = await User.find().populate("subscriptions");
 ```
 
 #### Pagination
+
 ```javascript
 // Use limit and skip
 const users = await User.find()
@@ -1657,23 +1782,24 @@ const users = await User.find()
 ### 2. Caching
 
 #### Response Caching
+
 ```javascript
-import redis from 'redis';
+import redis from "redis";
 
 const cache = async (req, res, next) => {
   const key = req.originalUrl;
   const cached = await redis.get(key);
-  
+
   if (cached) {
     return res.json(JSON.parse(cached));
   }
-  
+
   res.sendResponse = res.json;
   res.json = (body) => {
     redis.setex(key, 3600, JSON.stringify(body));
     res.sendResponse(body);
   };
-  
+
   next();
 };
 ```
@@ -1681,7 +1807,7 @@ const cache = async (req, res, next) => {
 ### 3. Compression
 
 ```javascript
-import compression from 'compression';
+import compression from "compression";
 
 app.use(compression());
 ```
@@ -1692,7 +1818,7 @@ app.use(compression());
 // MongoDB connection pooling
 mongoose.connect(uri, {
   maxPoolSize: 10,
-  minPoolSize: 5
+  minPoolSize: 5,
 });
 ```
 
@@ -1714,7 +1840,7 @@ const getUsers = async (req, res, next) => {
 
 ```javascript
 // Only select needed fields
-const users = await User.find().select('name email');
+const users = await User.find().select("name email");
 ```
 
 ### 7. Batch Operations
@@ -1724,10 +1850,7 @@ const users = await User.find().select('name email');
 await User.insertMany(users);
 
 // Batch update
-await User.updateMany(
-  { status: 'inactive' },
-  { $set: { status: 'active' } }
-);
+await User.updateMany({ status: "inactive" }, { $set: { status: "active" } });
 ```
 
 ---
@@ -1737,16 +1860,14 @@ await User.updateMany(
 ### Unit Testing
 
 ```javascript
-import { describe, it, expect } from 'vitest';
-import request from 'supertest';
-import app from './app';
+import { describe, it, expect } from "vitest";
+import request from "supertest";
+import app from "./app";
 
-describe('GET /api/users', () => {
-  it('should return list of users', async () => {
-    const response = await request(app)
-      .get('/api/users')
-      .expect(200);
-    
+describe("GET /api/users", () => {
+  it("should return list of users", async () => {
+    const response = await request(app).get("/api/users").expect(200);
+
     expect(response.body.success).toBe(true);
     expect(Array.isArray(response.body.data)).toBe(true);
   });
@@ -1756,29 +1877,29 @@ describe('GET /api/users', () => {
 ### Integration Testing
 
 ```javascript
-describe('POST /api/users', () => {
-  it('should create a new user', async () => {
+describe("POST /api/users", () => {
+  it("should create a new user", async () => {
     const userData = {
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'password123'
+      name: "John Doe",
+      email: "john@example.com",
+      password: "password123",
     };
-    
+
     const response = await request(app)
-      .post('/api/users')
+      .post("/api/users")
       .send(userData)
       .expect(201);
-    
+
     expect(response.body.success).toBe(true);
     expect(response.body.data.email).toBe(userData.email);
   });
-  
-  it('should return 422 for invalid data', async () => {
+
+  it("should return 422 for invalid data", async () => {
     const response = await request(app)
-      .post('/api/users')
-      .send({ email: 'invalid' })
+      .post("/api/users")
+      .send({ email: "invalid" })
       .expect(422);
-    
+
     expect(response.body.success).toBe(false);
   });
 });
@@ -1817,7 +1938,7 @@ paths:
     get:
       summary: Get all users
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -1829,7 +1950,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
     post:
       summary: Create a new user
       requestBody:
@@ -1837,9 +1958,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUser'
+              $ref: "#/components/schemas/CreateUser"
       responses:
-        '201':
+        "201":
           description: User created
 components:
   schemas:
@@ -1880,22 +2001,24 @@ components:
 ### Complete CRUD Example
 
 #### Model
+
 ```javascript
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);
 ```
 
 #### Controller
+
 ```javascript
-import User from '../models/user.model.js';
+import User from "../models/user.model.js";
 
 export const getUsers = async (req, res, next) => {
   try {
@@ -1903,10 +2026,10 @@ export const getUsers = async (req, res, next) => {
     const users = await User.find()
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('-password');
-    
+      .select("-password");
+
     const total = await User.countDocuments();
-    
+
     res.json({
       success: true,
       data: users,
@@ -1914,8 +2037,8 @@ export const getUsers = async (req, res, next) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     next(error);
@@ -1924,18 +2047,18 @@ export const getUsers = async (req, res, next) => {
 
 export const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
-    
+    const user = await User.findById(req.params.id).select("-password");
+
     if (!user) {
       return res.status(404).json({
         success: false,
         error: {
-          code: 'NOT_FOUND',
-          message: 'User not found'
-        }
+          code: "NOT_FOUND",
+          message: "User not found",
+        },
       });
     }
-    
+
     res.json({ success: true, data: user });
   } catch (error) {
     next(error);
@@ -1947,17 +2070,17 @@ export const createUser = async (req, res, next) => {
     const user = await User.create(req.body);
     res.status(201).json({
       success: true,
-      message: 'User created successfully',
-      data: user
+      message: "User created successfully",
+      data: user,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
         error: {
-          code: 'CONFLICT',
-          message: 'Email already exists'
-        }
+          code: "CONFLICT",
+          message: "Email already exists",
+        },
       });
     }
     next(error);
@@ -1966,26 +2089,25 @@ export const createUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).select('-password');
-    
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
     if (!user) {
       return res.status(404).json({
         success: false,
         error: {
-          code: 'NOT_FOUND',
-          message: 'User not found'
-        }
+          code: "NOT_FOUND",
+          message: "User not found",
+        },
       });
     }
-    
+
     res.json({
       success: true,
-      message: 'User updated successfully',
-      data: user
+      message: "User updated successfully",
+      data: user,
     });
   } catch (error) {
     next(error);
@@ -1995,17 +2117,17 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
         error: {
-          code: 'NOT_FOUND',
-          message: 'User not found'
-        }
+          code: "NOT_FOUND",
+          message: "User not found",
+        },
       });
     }
-    
+
     res.status(204).send();
   } catch (error) {
     next(error);
@@ -2014,89 +2136,91 @@ export const deleteUser = async (req, res, next) => {
 ```
 
 #### Routes
+
 ```javascript
-import { Router } from 'express';
+import { Router } from "express";
 import {
   getUsers,
   getUserById,
   createUser,
   updateUser,
-  deleteUser
-} from '../controllers/user.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
-import { validateUser } from '../middlewares/validation.middleware.js';
+  deleteUser,
+} from "../controllers/user.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
+import { validateUser } from "../middlewares/validation.middleware.js";
 
 const router = Router();
 
-router.get('/', authenticate, getUsers);
-router.get('/:id', authenticate, getUserById);
-router.post('/', validateUser, createUser);
-router.put('/:id', authenticate, validateUser, updateUser);
-router.patch('/:id', authenticate, validateUser, updateUser);
-router.delete('/:id', authenticate, deleteUser);
+router.get("/", authenticate, getUsers);
+router.get("/:id", authenticate, getUserById);
+router.post("/", validateUser, createUser);
+router.put("/:id", authenticate, validateUser, updateUser);
+router.patch("/:id", authenticate, validateUser, updateUser);
+router.delete("/:id", authenticate, deleteUser);
 
 export default router;
 ```
 
 #### Error Middleware
+
 ```javascript
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
-  
+  let message = err.message || "Internal Server Error";
+
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
+  if (err.name === "ValidationError") {
     statusCode = 422;
-    message = 'Validation Error';
+    message = "Validation Error";
     const details = {};
-    Object.keys(err.errors).forEach(key => {
+    Object.keys(err.errors).forEach((key) => {
       details[key] = err.errors[key].message;
     });
-    
+
     return res.status(statusCode).json({
       success: false,
       error: {
-        code: 'VALIDATION_ERROR',
+        code: "VALIDATION_ERROR",
         message,
-        details
-      }
+        details,
+      },
     });
   }
-  
+
   // Mongoose duplicate key error
   if (err.code === 11000) {
     statusCode = 409;
     return res.status(statusCode).json({
       success: false,
       error: {
-        code: 'CONFLICT',
-        message: 'Resource already exists'
-      }
+        code: "CONFLICT",
+        message: "Resource already exists",
+      },
     });
   }
-  
+
   // JWT errors
-  if (err.name === 'JsonWebTokenError') {
+  if (err.name === "JsonWebTokenError") {
     statusCode = 401;
-    message = 'Invalid token';
+    message = "Invalid token";
   }
-  
-  if (err.name === 'TokenExpiredError') {
+
+  if (err.name === "TokenExpiredError") {
     statusCode = 401;
-    message = 'Token expired';
+    message = "Token expired";
   }
-  
+
   res.status(statusCode).json({
     success: false,
     error: {
-      code: err.code || 'INTERNAL_ERROR',
+      code: err.code || "INTERNAL_ERROR",
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
     },
     meta: {
       timestamp: new Date().toISOString(),
-      path: req.path
-    }
+      path: req.path,
+    },
   });
 };
 
@@ -2106,47 +2230,48 @@ export default errorHandler;
 ### Authentication Example
 
 #### JWT Authentication
+
 ```javascript
-import jwt from 'jsonwebtoken';
-import User from '../models/user.model.js';
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 export const authenticate = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
+    const token = req.headers.authorization?.split(" ")[1];
+
     if (!token) {
       return res.status(401).json({
         success: false,
         error: {
-          code: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        }
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        },
       });
     }
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
-    
+    const user = await User.findById(decoded.userId).select("-password");
+
     if (!user) {
       return res.status(401).json({
         success: false,
         error: {
-          code: 'UNAUTHORIZED',
-          message: 'User not found'
-        }
+          code: "UNAUTHORIZED",
+          message: "User not found",
+        },
       });
     }
-    
+
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
+    if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
         error: {
-          code: 'UNAUTHORIZED',
-          message: 'Invalid token'
-        }
+          code: "UNAUTHORIZED",
+          message: "Invalid token",
+        },
       });
     }
     next(error);
@@ -2155,54 +2280,53 @@ export const authenticate = async (req, res, next) => {
 ```
 
 #### Login Controller
+
 ```javascript
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import User from '../models/user.model.js';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
         success: false,
         error: {
-          code: 'UNAUTHORIZED',
-          message: 'Invalid credentials'
-        }
+          code: "UNAUTHORIZED",
+          message: "Invalid credentials",
+        },
       });
     }
-    
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
         error: {
-          code: 'UNAUTHORIZED',
-          message: 'Invalid credentials'
-        }
+          code: "UNAUTHORIZED",
+          message: "Invalid credentials",
+        },
       });
     }
-    
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-    
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    });
+
     res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       data: {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email
+          email: user.email,
         },
-        token
-      }
+        token,
+      },
     });
   } catch (error) {
     next(error);
@@ -2223,6 +2347,7 @@ RESTful APIs are the foundation of modern web development. By following the prin
 - **Developer-Friendly**: Easy to use and integrate
 
 Remember:
+
 - Use proper HTTP methods and status codes
 - Design clear, consistent URLs
 - Implement proper error handling
@@ -2245,5 +2370,4 @@ Keep learning, stay updated with industry standards, and always prioritize the d
 
 ---
 
-*Last Updated: 2024*
-
+_Last Updated: 2024_
