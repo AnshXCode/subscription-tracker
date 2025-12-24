@@ -79,6 +79,24 @@ Rebase essentially says: _"Take my changes and pretend I started working from th
 
 **Important:** The commit content stays the same, but the hash changes because the parent commit changed.
 
+### What Happens to Commit Messages During Rebase?
+
+**Regular Rebase (non-interactive):**
+
+- ✅ **Commit messages stay EXACTLY the same**
+- ✅ Only commit hashes change (because parent changed)
+- ✅ Commit content stays the same
+- ✅ This is normal and expected behavior
+
+**Interactive Rebase:**
+
+- If you use `pick`: Messages stay the same
+- If you use `reword`: Git opens editor for you to change the message
+- If you use `squash`: You can combine messages
+- If you use `fixup`: Message is discarded
+
+**Key Point:** Regular rebase (`git rebase main`) does NOT change commit messages - it only replays them on top of the new base. If you want to change messages, you need interactive rebase (`git rebase -i`).
+
 ---
 
 ## When to Use Git Rebase
@@ -313,6 +331,42 @@ pick ghi789 Third commit
 # d, drop = remove commit
 ```
 
+**How to Save in GNU Nano (When Editor Opens):**
+
+When git opens nano for interactive rebase, you'll see the commit list. Here's how to save:
+
+1. **Edit the file** - Change `pick` to `squash`, `reword`, `edit`, etc. as needed
+2. **Save the file:**
+   - Press `Ctrl + O` (Write Out) - you'll see "File Name to Write:"
+   - Press `Enter` to confirm (or type a different name if needed)
+   - You'll see "[ Wrote X lines ]" confirming the save
+3. **Exit nano:**
+   - Press `Ctrl + X` to exit
+   - Git will continue with the rebase
+
+**Quick Method (Save and Exit in One Go):**
+
+- `Ctrl + X` to exit
+- When prompted "Save modified buffer?", press `Y` (Yes)
+- Press `Enter` to confirm filename
+- Nano closes and git continues
+
+**Cancel Without Saving:**
+
+- `Ctrl + X` to exit
+- When prompted "Save modified buffer?", press `N` (No)
+- Git will abort the rebase (same as `git rebase --abort`)
+
+**Nano Keyboard Shortcuts Reference:**
+
+- `Ctrl + O` - Write Out (Save)
+- `Ctrl + X` - Exit
+- `Ctrl + K` - Cut line
+- `Ctrl + U` - Paste
+- `Ctrl + W` - Search
+- `Ctrl + \` - Search and replace
+- Bottom of nano screen shows available commands (^ means Ctrl)
+
 ### 3. **Rebasing After Conflicts**
 
 **When:** Conflicts occur during rebase - git pauses and waits for you.
@@ -502,7 +556,11 @@ squash mno345 Final cleanup
 
 **Goal:** Fix typo in commit message or improve clarity.
 
+**Important:** This changes the commit messages **in your current branch** (feature-branch). After rebase completes, your branch will have the new messages.
+
 ```bash
+# Make sure you're on your feature-branch
+git checkout feature-branch
 git rebase -i HEAD~3
 ```
 
@@ -522,7 +580,20 @@ pick def456 Add feature
 pick ghi789 Update docs
 ```
 
-**Result:** Git opens editor for each "reword" commit to edit message.
+**What Happens:**
+
+1. Git opens editor for the first `reword` commit
+2. You edit the message (e.g., change "Fix bug" to "Fix login bug")
+3. Save and close editor
+4. Git creates a new commit with the new message
+5. Process repeats for each `reword` commit
+
+**Result:**
+
+- ✅ Your **feature-branch** now has the new commit messages
+- ✅ Commit hashes change (because message changed)
+- ✅ When you merge to main, main will get the new messages
+- ✅ Check with `git log` - you'll see the updated messages immediately
 
 #### 3. Reorder Commits
 
@@ -1415,9 +1486,13 @@ git merge main  # Use merge for this time
 
 1. **Save and close editor:**
 
-   - In vim: `:wq` then Enter
-   - In nano: `Ctrl+X`, then `Y`, then Enter
-   - In VS Code: Save and close
+   - **In vim:** `:wq` then Enter (or `:x` then Enter)
+   - **In nano:**
+     - `Ctrl + O` (Write Out) - saves the file
+     - Press `Enter` to confirm filename
+     - `Ctrl + X` (Exit) - closes nano
+     - **Quick method:** `Ctrl + X`, then `Y` (yes to save), then `Enter`
+   - **In VS Code:** Save (`Ctrl+S`) and close the file
 
 2. **If editor won't close:**
 
@@ -1589,6 +1664,148 @@ git rebase correct-branch
 
 **Solution:** This is normal - your branch is now up to date. No action needed.
 
+### Issue #11: "Commit Messages Still Show Old Messages After Rebase"
+
+**Symptoms:** After completing rebase, `git log` still shows the same commit messages.
+
+**Question:** "Do I need to do something else? Is this only for what will be merged into main?"
+
+**Answer:** This is **NORMAL and EXPECTED** behavior! Here's why:
+
+#### Understanding What Happens:
+
+1. **Regular Rebase (`git rebase main`) Does NOT Change Messages:**
+
+   - ✅ Commit messages stay exactly the same
+   - ✅ Only commit hashes change (because parent changed)
+   - ✅ This is the intended behavior
+
+2. **What Branch Are You Looking At?**
+
+   ```bash
+   # Check which branch you're on
+   git branch
+
+   # Check commits on your feature branch
+   git log --oneline feature-branch
+
+   # Check commits on main (won't change until merge)
+   git log --oneline main
+   ```
+
+3. **Rebase Only Affects Your Feature Branch:**
+
+   - ✅ Rebase changes your **feature-branch** commits
+   - ❌ Rebase does NOT change **main** branch (until you merge)
+   - ✅ When you merge feature-branch → main, those commits (with their messages) go into main
+
+4. **To Verify Rebase Worked:**
+
+   ```bash
+   # Check that your branch is now based on latest main
+   git log --oneline --graph feature-branch main
+
+   # You should see your commits on top of main's latest commits
+   ```
+
+5. **If You Want to Change Commit Messages:**
+
+   ```bash
+   # Use interactive rebase
+   git rebase -i main
+
+   # Change 'pick' to 'reword' for commits you want to change
+   # Git will open editor for each 'reword' commit
+   ```
+
+#### Summary:
+
+- **Old messages showing = Normal** - Regular rebase keeps messages the same
+- **Feature branch = What gets merged** - Yes, your feature branch commits (with their messages) are what will merge into main
+- **Main branch = Unchanged** - Main won't change until you merge your feature branch
+- **To change messages = Use interactive rebase** - `git rebase -i main` and use `reword`
+
+**You don't need to do anything else!** The rebase worked correctly. Your feature branch now has the latest main changes, and when you merge it, those commits (with their current messages) will go into main.
+
+### Issue #12: "Will Changing Commit Messages Through Rebase Change Them in Feature Branch?"
+
+**Question:** "If I change a commit message in feature-branch through rebase, will it change in the feature-branch too?"
+
+**Answer:** **YES! Absolutely!** When you use interactive rebase with `reword` on your feature-branch, the commit messages ARE changed in your feature-branch.
+
+#### How It Works:
+
+1. **You're on feature-branch:**
+
+   ```bash
+   git checkout feature-branch
+   git rebase -i main  # or git rebase -i HEAD~5
+   ```
+
+2. **You change `pick` to `reword`:**
+
+   ```
+   reword abc123 Old commit message
+   pick def456 Another commit
+   ```
+
+3. **Git opens editor for each `reword` commit:**
+
+   - You edit the message
+   - Save and close
+   - Git creates a NEW commit with the new message
+
+4. **Result:**
+   - ✅ **Your feature-branch NOW has the new commit message**
+   - ✅ The commit hash changes (because message changed)
+   - ✅ When you check `git log`, you'll see the NEW message
+   - ✅ When you merge to main, main will get the NEW message
+
+#### Example:
+
+**Before interactive rebase:**
+
+```bash
+git log --oneline feature-branch
+abc123 Fix typo
+def456 Add feature
+```
+
+**After `git rebase -i main` with `reword`:**
+
+```bash
+git log --oneline feature-branch
+xyz789 Fix typo in login form  # NEW message!
+def456 Add feature
+```
+
+**After merging to main:**
+
+```bash
+git checkout main
+git merge feature-branch
+git log --oneline main
+xyz789 Fix typo in login form  # Same new message in main!
+```
+
+#### Important Points:
+
+- ✅ **Changes happen immediately** - As soon as rebase completes, your feature-branch has new messages
+- ✅ **Feature-branch is modified** - The commits in your feature-branch are rewritten
+- ✅ **Main gets new messages** - When you merge, main receives commits with the new messages
+- ⚠️ **If already pushed** - You'll need `git push --force-with-lease` to update remote
+
+#### To Verify:
+
+```bash
+# After rebase, check your feature-branch
+git log --oneline feature-branch
+
+# You should see your NEW commit messages
+```
+
+**Bottom line:** Yes, changing commit messages through interactive rebase (`reword`) changes them in your feature-branch immediately. Those new messages will be what goes into main when you merge.
+
 ---
 
 ## Advanced Rebase Techniques
@@ -1742,6 +1959,27 @@ git push --force-with-lease origin branch-name
 # Check rebase status
 git rebase --show-current-patch
 ```
+
+### Editor Commands (When Interactive Rebase Opens)
+
+**GNU Nano:**
+
+- Save: `Ctrl + O`, then `Enter`
+- Exit: `Ctrl + X`
+- Save and Exit: `Ctrl + X`, then `Y`, then `Enter`
+- Cancel: `Ctrl + X`, then `N`
+
+**Vim/Vi:**
+
+- Save and Exit: `:wq` then `Enter` (or `:x` then `Enter`)
+- Exit without saving: `:q!` then `Enter`
+- Save: `:w` then `Enter`
+- Exit: `:q` then `Enter`
+
+**VS Code:**
+
+- Save: `Ctrl+S` (or `Cmd+S` on Mac)
+- Close: `Ctrl+W` (or `Cmd+W` on Mac)
 
 ---
 
