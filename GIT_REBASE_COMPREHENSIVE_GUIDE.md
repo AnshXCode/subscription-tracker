@@ -1,48 +1,42 @@
 # Git Rebase Comprehensive Guide
 
-This guide provides a complete understanding of **git rebase**, covering what it is, when to use it, when git does it automatically, and when you need to do it manually. No doubts left!
+This guide provides a complete understanding of **git rebase**, covering what it is, when to use it, when git does it automatically, and when you need to do it manually.
 
 ---
 
 ## Table of Contents
 
 1. [What is Git Rebase?](#what-is-git-rebase)
-2. [How Git Rebase Works Internally](#how-git-rebase-works-internally)
-3. [When to Use Git Rebase](#when-to-use-git-rebase)
-4. [When Git Rebases Automatically](#when-git-rebases-automatically)
-5. [When You Need to Rebase Manually](#when-you-need-to-rebase-manually)
-6. [Basic Rebase Commands](#basic-rebase-commands)
-7. [Interactive Rebase](#interactive-rebase)
-8. [Rebase vs Merge: Complete Comparison](#rebase-vs-merge-complete-comparison)
-9. [Step-by-Step Rebase Workflows](#step-by-step-rebase-workflows)
-10. [Handling Conflicts During Rebase](#handling-conflicts-during-rebase)
-11. [Common Scenarios and Solutions](#common-scenarios-and-solutions)
-12. [Best Practices and Golden Rules](#best-practices-and-golden-rules)
-13. [Common Mistakes and How to Avoid Them](#common-mistakes-and-how-to-avoid-them)
-14. [Troubleshooting Rebase Issues](#troubleshooting-rebase-issues)
-15. [Advanced Rebase Techniques](#advanced-rebase-techniques)
+2. [When to Use Git Rebase](#when-to-use-git-rebase)
+3. [When Git Rebases Automatically](#when-git-rebases-automatically)
+4. [When You Need to Rebase Manually](#when-you-need-to-rebase-manually)
+5. [Basic Rebase Commands](#basic-rebase-commands)
+6. [Interactive Rebase](#interactive-rebase)
+7. [Rebase vs Merge](#rebase-vs-merge)
+8. [Git Cherry-Pick](#git-cherry-pick)
+9. [Handling Conflicts During Rebase](#handling-conflicts-during-rebase)
+10. [Best Practices and Golden Rules](#best-practices-and-golden-rules)
+11. [Common Mistakes](#common-mistakes)
+12. [Troubleshooting](#troubleshooting)
+13. [Quick Reference](#quick-reference)
 
 ---
 
 ## What is Git Rebase?
 
-### Definition
-
-**Git rebase** is a Git command that moves or replays commits from one branch onto another branch. Instead of creating a merge commit (like `git merge` does), rebase takes your commits and replays them on top of the target branch, creating a linear, cleaner history.
+**Git rebase** moves or replays commits from one branch onto another branch. Instead of creating a merge commit, rebase replays your commits on top of the target branch, creating a linear history.
 
 ### Visual Understanding
 
-#### Before Rebase (with merge):
+**Before Rebase:**
 
 ```
 main:     A---B---C---D
                 \
 feature:         E---F---G
-                      \
-merge:                 M (merge commit)
 ```
 
-#### After Rebase:
+**After Rebase:**
 
 ```
 main:     A---B---C---D
@@ -50,52 +44,11 @@ main:     A---B---C---D
 feature:               E'---F'---G' (replayed commits)
 ```
 
-**Key Point:** The commits E, F, G are recreated as E', F', G' with new commit hashes because they now have different parent commits.
+**Key Points:**
 
-### Core Concept
-
-Rebase essentially says: _"Take my changes and pretend I started working from the latest commit on the target branch, not from where I originally branched off."_
-
----
-
-## How Git Rebase Works Internally
-
-### Step-by-Step Process
-
-1. **Identify the common ancestor**: Git finds the point where your branch diverged from the target branch.
-
-2. **Temporarily remove your commits**: Git saves your commits but removes them from the branch.
-
-3. **Fast-forward to target branch**: Git moves your branch pointer to the latest commit of the target branch.
-
-4. **Replay commits one by one**: Git applies your commits sequentially on top of the target branch.
-
-5. **Create new commits**: Each replayed commit gets a new hash because its parent changed.
-
-### What Happens to Commit Hashes?
-
-- **Original commits**: `E`, `F`, `G` (with hashes like `abc123`, `def456`, `ghi789`)
-- **After rebase**: `E'`, `F'`, `G'` (with NEW hashes like `xyz111`, `uvw222`, `rst333`)
-
-**Important:** The commit content stays the same, but the hash changes because the parent commit changed.
-
-### What Happens to Commit Messages During Rebase?
-
-**Regular Rebase (non-interactive):**
-
-- ✅ **Commit messages stay EXACTLY the same**
-- ✅ Only commit hashes change (because parent changed)
-- ✅ Commit content stays the same
-- ✅ This is normal and expected behavior
-
-**Interactive Rebase:**
-
-- If you use `pick`: Messages stay the same
-- If you use `reword`: Git opens editor for you to change the message
-- If you use `squash`: You can combine messages
-- If you use `fixup`: Message is discarded
-
-**Key Point:** Regular rebase (`git rebase main`) does NOT change commit messages - it only replays them on top of the new base. If you want to change messages, you need interactive rebase (`git rebase -i`).
+- Commits get new hashes (because parent changed)
+- Commit messages stay the same (unless using interactive rebase)
+- Creates linear, cleaner history
 
 ---
 
@@ -103,91 +56,29 @@ Rebase essentially says: _"Take my changes and pretend I started working from th
 
 ### 1. **Before Merging a Feature Branch**
 
-**Scenario:** You've been working on a feature branch, and main has moved forward with new commits.
-
-**Why:** Creates a linear history without unnecessary merge commits.
-
-**Example:**
+Update your feature branch with latest main before merging:
 
 ```bash
-# You're on feature-branch
 git checkout feature-branch
-
-# Rebase onto main to get latest changes
 git rebase main
-
-# Now your feature branch is on top of latest main
-# Ready to merge with clean history
 ```
 
-### 2. **Keeping Feature Branches Up to Date**
+### 2. **Cleaning Up Commit History**
 
-**Scenario:** You're working on a long-lived feature branch, and you want to incorporate changes from main regularly.
-
-**Why:** Ensures your feature works with the latest code and reduces merge conflicts later.
-
-**Example:**
+Combine multiple small commits into one:
 
 ```bash
-# Weekly sync with main
-git checkout feature-branch
-git fetch origin
-git rebase origin/main
+git rebase -i HEAD~5  # Interactive rebase
 ```
 
-### 3. **Cleaning Up Commit History**
+### 3. **Preparing for Code Review**
 
-**Scenario:** You have multiple small commits like "fix typo", "fix another typo", "update comment" that should be combined.
-
-**Why:** Creates a cleaner, more professional commit history.
-
-**Example:**
-
-```bash
-# Interactive rebase to squash commits
-git rebase -i HEAD~5  # Last 5 commits
-```
-
-### 4. **Resolving Conflicts Incrementally**
-
-**Scenario:** You have conflicts with the target branch, and you want to resolve them commit-by-commit.
-
-**Why:** Easier to understand what changed and why conflicts occurred.
-
-**Example:**
-
-```bash
-git rebase main
-# Conflicts occur at commit 2 of 3
-# Resolve conflicts for that specific commit
-# Continue rebase
-```
-
-### 5. **Preparing for Code Review**
-
-**Scenario:** Before creating a pull request, you want to ensure your branch is clean and up-to-date.
-
-**Why:** Reviewers see a clean, linear history that's easier to review.
-
-**Example:**
+Clean up commits before creating pull request:
 
 ```bash
 git checkout feature-branch
 git rebase origin/main
 git push --force-with-lease
-```
-
-### 6. **Fixing Mistakes in Recent Commits**
-
-**Scenario:** You want to modify, reorder, or remove recent commits.
-
-**Why:** Interactive rebase allows you to edit commit history before it's shared.
-
-**Example:**
-
-```bash
-# Edit last 3 commits
-git rebase -i HEAD~3
 ```
 
 ---
@@ -196,92 +87,25 @@ git rebase -i HEAD~3
 
 ### 1. **Using `git pull --rebase`**
 
-**What happens:** Git automatically rebases your local commits on top of the remote changes.
-
-**Example:**
-
 ```bash
-# You have local commits
-git commit -m "Local work"
-
-# Remote has new commits
 git pull --rebase origin main
-
-# Git automatically:
-# 1. Fetches remote changes
-# 2. Temporarily removes your local commits
-# 3. Fast-forwards to remote main
-# 4. Replays your commits on top
 ```
 
-**When this happens:** Every time you explicitly use `--rebase` flag with pull.
+Git automatically rebases your local commits on top of remote changes.
 
 ### 2. **Configured Pull Behavior**
 
-**What happens:** If you configure git to always rebase on pull, it happens automatically.
-
-**Setup:**
-
 ```bash
-# Set rebase as default for pull
+# Set rebase as default
 git config pull.rebase true
 
-# Or globally for all repos
-git config --global pull.rebase true
-
 # Now regular git pull will rebase automatically
-git pull  # Automatically rebases instead of merging
-```
-
-**When this happens:** Every time you run `git pull` after configuration.
-
-**Check current setting:**
-
-```bash
-git config pull.rebase
-# Returns: true, false, or nothing (defaults to false)
+git pull
 ```
 
 ### 3. **GitHub/GitLab "Rebase and Merge" Button**
 
-**What happens:** When you use the web interface to merge a pull request with "Rebase and merge" option.
-
-**Example:**
-
-1. Create pull request on GitHub
-2. Click "Rebase and merge" button
-3. GitHub automatically rebases your branch onto main
-4. Creates a linear history
-
-**When this happens:** Only when you explicitly choose "Rebase and merge" in the UI (not the default).
-
-### 4. **Git Hooks and Automation Scripts**
-
-**What happens:** If you have git hooks or CI/CD scripts that run rebase commands.
-
-**Example:**
-
-```bash
-# In a pre-push hook
-#!/bin/bash
-git rebase origin/main
-```
-
-**When this happens:** When the hook or script is triggered (e.g., before push).
-
-### 5. **GitHub Actions / CI/CD Pipelines**
-
-**What happens:** Automated workflows can rebase branches.
-
-**Example:**
-
-```yaml
-# .github/workflows/rebase.yml
-- name: Rebase branch
-  run: git rebase main
-```
-
-**When this happens:** When the workflow runs (manually triggered or on events).
+When you use the web interface "Rebase and merge" option, it rebases automatically.
 
 ---
 
@@ -289,183 +113,58 @@ git rebase origin/main
 
 ### 1. **Standard Rebase Workflow**
 
-**When:** Most common scenario - updating your feature branch with latest main.
-
-**Command:**
-
 ```bash
 git checkout feature-branch
 git fetch origin
 git rebase origin/main
 ```
 
-**Why manual:** Git doesn't know when you want to rebase - you must explicitly tell it.
-
 ### 2. **Interactive Rebase for History Cleanup**
-
-**When:** You want to edit, squash, reorder, or remove commits.
-
-**Command:**
 
 ```bash
 git rebase -i HEAD~5  # Last 5 commits
-git rebase -i main    # All commits since branching from main
-git rebase -i abc123  # From specific commit hash
+git rebase -i main     # All commits since branching
 ```
 
-**Why manual:** You need to make decisions about which commits to modify.
+**How to Save in GNU Nano:**
 
-**Interactive rebase opens an editor:**
+1. Edit the file - Change `pick` to `squash`, `reword`, `edit`, etc.
+2. Save: `Ctrl + O`, then `Enter`
+3. Exit: `Ctrl + X`
+4. **Quick method:** `Ctrl + X`, then `Y`, then `Enter`
 
-```
-pick abc123 First commit
-pick def456 Second commit
-pick ghi789 Third commit
+**Interactive rebase commands:**
 
-# Commands:
-# p, pick = use commit
-# r, reword = use commit, but edit the commit message
-# e, edit = use commit, but stop for amending
-# s, squash = use commit, but meld into previous commit
-# f, fixup = like "squash", but discard this commit's log message
-# d, drop = remove commit
-```
-
-**How to Save in GNU Nano (When Editor Opens):**
-
-When git opens nano for interactive rebase, you'll see the commit list. Here's how to save:
-
-1. **Edit the file** - Change `pick` to `squash`, `reword`, `edit`, etc. as needed
-2. **Save the file:**
-   - Press `Ctrl + O` (Write Out) - you'll see "File Name to Write:"
-   - Press `Enter` to confirm (or type a different name if needed)
-   - You'll see "[ Wrote X lines ]" confirming the save
-3. **Exit nano:**
-   - Press `Ctrl + X` to exit
-   - Git will continue with the rebase
-
-**Quick Method (Save and Exit in One Go):**
-
-- `Ctrl + X` to exit
-- When prompted "Save modified buffer?", press `Y` (Yes)
-- Press `Enter` to confirm filename
-- Nano closes and git continues
-
-**Cancel Without Saving:**
-
-- `Ctrl + X` to exit
-- When prompted "Save modified buffer?", press `N` (No)
-- Git will abort the rebase (same as `git rebase --abort`)
-
-**Nano Keyboard Shortcuts Reference:**
-
-- `Ctrl + O` - Write Out (Save)
-- `Ctrl + X` - Exit
-- `Ctrl + K` - Cut line
-- `Ctrl + U` - Paste
-- `Ctrl + W` - Search
-- `Ctrl + \` - Search and replace
-- Bottom of nano screen shows available commands (^ means Ctrl)
+- `pick` (or `p`) - use commit as-is
+- `reword` (or `r`) - change commit message
+- `edit` (or `e`) - modify commit content
+- `squash` (or `s`) - combine with previous commit
+- `fixup` (or `f`) - like squash but discard message
+- `drop` (or `d`) - remove commit
 
 ### 3. **Rebasing After Conflicts**
 
-**When:** Conflicts occur during rebase - git pauses and waits for you.
-
-**Process:**
-
 ```bash
 git rebase main
-
-# Conflict occurs - git pauses
-# You see:
-# CONFLICT (content): Merge conflict in file.txt
-#
-# You must manually:
-# 1. Open file.txt and resolve conflicts
-# 2. Stage resolved file
+# Resolve conflicts manually
 git add file.txt
-
-# 3. Continue rebase
 git rebase --continue
-
-# OR abort if you want to stop
+# OR abort
 git rebase --abort
 ```
 
-**Why manual:** Git cannot automatically resolve conflicts - you must decide how to merge changes.
-
-### 4. **Rebasing Before First Push**
-
-**When:** You've made commits locally and want to rebase before pushing.
-
-**Command:**
-
-```bash
-git checkout feature-branch
-git rebase main
-git push origin feature-branch
-```
-
-**Why manual:** Standard workflow - git doesn't assume you want to rebase.
-
-### 5. **Rebasing After Already Pushing**
-
-**When:** You've already pushed a branch but want to rebase it.
-
-**Warning:** This rewrites history that others might be using!
-
-**Command:**
+### 4. **Rebasing After Already Pushing**
 
 ```bash
 git rebase main
 git push --force-with-lease origin feature-branch
 ```
 
-**Why manual:** Force pushing is dangerous - git requires explicit confirmation.
-
-**Why `--force-with-lease` instead of `--force`:**
-
-- `--force`: Overwrites remote branch regardless of what's there
-- `--force-with-lease`: Only overwrites if remote hasn't changed (safer)
-
-### 6. **Rebasing Onto a Different Base**
-
-**When:** You want to change which commit your branch is based on.
-
-**Command:**
-
-```bash
-# Rebase onto a specific commit
-git rebase --onto main feature-branch~3 feature-branch
-
-# This means: take commits from feature-branch~3 to feature-branch
-# and replay them onto main
-```
-
-**Why manual:** Complex operation requiring explicit specification.
-
-### 7. **Rebasing to Remove Sensitive Data**
-
-**When:** You accidentally committed passwords, API keys, or other sensitive data.
-
-**Command:**
-
-```bash
-# Interactive rebase to edit the commit
-git rebase -i HEAD~5
-# Mark commit as 'edit'
-# Remove sensitive data
-git commit --amend
-git rebase --continue
-```
-
-**Why manual:** Security-sensitive operation requiring careful review.
+**⚠️ Warning:** Only do this if you're the only one working on the branch.
 
 ---
 
 ## Basic Rebase Commands
-
-### Standard Rebase
 
 ```bash
 # Rebase current branch onto main
@@ -474,183 +173,68 @@ git rebase main
 # Rebase onto remote main
 git rebase origin/main
 
-# Rebase onto a specific commit
-git rebase abc123
-```
-
-### Rebase with Options
-
-```bash
-# Continue rebase after resolving conflicts
+# Continue after resolving conflicts
 git rebase --continue
 
-# Abort rebase and return to original state
+# Abort rebase
 git rebase --abort
 
-# Skip current commit (if you want to drop it)
+# Skip current commit
 git rebase --skip
-
-# Show current rebase status
-git rebase --show-current-patch
-```
-
-### Fetch and Rebase
-
-```bash
-# Fetch latest changes and rebase
-git fetch origin
-git rebase origin/main
-
-# Or combine (if pull.rebase is configured)
-git pull --rebase
 ```
 
 ---
 
 ## Interactive Rebase
 
-### What is Interactive Rebase?
-
-Interactive rebase (`git rebase -i`) allows you to modify commits before they're replayed. You can:
-
-- **Pick**: Keep the commit as-is
-- **Reword**: Change the commit message
-- **Edit**: Modify the commit content
-- **Squash**: Combine with previous commit
-- **Fixup**: Like squash but discard message
-- **Drop**: Remove the commit entirely
-
-### Common Interactive Rebase Scenarios
+### Common Scenarios
 
 #### 1. Squash Multiple Commits
-
-**Goal:** Combine several small commits into one.
 
 ```bash
 git rebase -i HEAD~5
 ```
 
-**Editor shows:**
-
-```
-pick abc123 Add login feature
-pick def456 Fix typo
-pick ghi789 Update comment
-pick jkl012 Another typo fix
-pick mno345 Final cleanup
-```
-
-**Change to:**
+**Change:**
 
 ```
 pick abc123 Add login feature
 squash def456 Fix typo
 squash ghi789 Update comment
-squash jkl012 Another typo fix
-squash mno345 Final cleanup
 ```
 
-**Result:** One commit "Add login feature" containing all changes.
+**Result:** One commit containing all changes.
 
 #### 2. Reword Commit Messages
 
-**Goal:** Fix typo in commit message or improve clarity.
+**Why Two Editor Sessions?**
 
-**Important:** This changes the commit messages **in your current branch** (feature-branch). After rebase completes, your branch will have the new messages.
+- **First editor:** Shows compact list - mark which commits to reword
+- **Second editor:** Shows full commit message - edit the actual message
 
-```bash
-# Make sure you're on your feature-branch
-git checkout feature-branch
-git rebase -i HEAD~3
-```
+**Process:**
 
-**Change:**
+1. Change `pick` to `reword` (or `r`) in first editor
+2. Save and close
+3. Git opens editor again with full commit message
+4. Edit message, save and close
+5. Repeat for each `reword` commit
 
-```
-pick abc123 Fix bug
-pick def456 Add feature
-pick ghi789 Update docs
-```
-
-**To:**
+**Example:**
 
 ```
+# First editor
 reword abc123 Fix bug
 pick def456 Add feature
-pick ghi789 Update docs
+
+# Second editor (opens automatically)
+Fix login authentication bug
+# Edit and save
 ```
 
-**What Happens:**
+**Result:** Your feature-branch now has the new commit messages.
 
-1. Git opens editor for the first `reword` commit
-2. You edit the message (e.g., change "Fix bug" to "Fix login bug")
-3. Save and close editor
-4. Git creates a new commit with the new message
-5. Process repeats for each `reword` commit
-
-**Result:**
-
-- ✅ Your **feature-branch** now has the new commit messages
-- ✅ Commit hashes change (because message changed)
-- ✅ When you merge to main, main will get the new messages
-- ✅ Check with `git log` - you'll see the updated messages immediately
-
-#### 3. Reorder Commits
-
-**Goal:** Change the order of commits.
-
-```bash
-git rebase -i HEAD~4
-```
-
-**Original order:**
-
-```
-pick abc123 Commit 1
-pick def456 Commit 2
-pick ghi789 Commit 3
-pick jkl012 Commit 4
-```
-
-**Reorder:**
-
-```
-pick def456 Commit 2
-pick abc123 Commit 1
-pick jkl012 Commit 4
-pick ghi789 Commit 3
-```
-
-**Result:** Commits replayed in new order.
-
-#### 4. Edit Commit Content
-
-**Goal:** Modify files in a past commit.
-
-```bash
-git rebase -i HEAD~3
-```
-
-**Change:**
-
-```
-edit abc123 Add feature
-pick def456 Fix bug
-pick ghi789 Update docs
-```
-
-**Git stops at commit abc123:**
-
-```bash
-# Make your changes
-git add file.txt
-git commit --amend
-git rebase --continue
-```
-
-#### 5. Drop Commits
-
-**Goal:** Remove unwanted commits.
+#### 3. Drop Commits
 
 ```bash
 git rebase -i HEAD~5
@@ -661,28 +245,18 @@ git rebase -i HEAD~5
 ```
 pick abc123 Good commit
 drop def456 Bad commit
-pick ghi789 Another good commit
+pick ghi789 Another commit
 ```
 
-**Result:** Bad commit is removed from history.
-
-### Interactive Rebase Tips
-
-1. **Start small:** Practice with `HEAD~3` before larger rebases
-2. **One operation at a time:** Don't try to do everything in one rebase
-3. **Backup first:** Create a backup branch before major rebases
-   ```bash
-   git branch backup-branch
-   git rebase -i HEAD~10
-   ```
+**Result:** Bad commit removed from history.
 
 ---
 
-## Rebase vs Merge: Complete Comparison
+## Rebase vs Merge
 
 ### Visual Comparison
 
-#### Merge Approach:
+**Merge:**
 
 ```
 main:     A---B---C---D
@@ -690,7 +264,7 @@ main:     A---B---C---D
 feature:         E---F---M (merge commit)
 ```
 
-#### Rebase Approach:
+**Rebase:**
 
 ```
 main:     A---B---C---D
@@ -698,438 +272,668 @@ main:     A---B---C---D
 feature:               E'---F' (linear history)
 ```
 
-### Detailed Comparison Table
+### Comparison Table
 
-| Aspect                  | Git Merge                           | Git Rebase                     |
-| ----------------------- | ----------------------------------- | ------------------------------ |
-| **History**             | Preserves exact branching structure | Creates linear history         |
-| **Merge Commits**       | Creates merge commit                | No merge commits               |
-| **Commit Hashes**       | Preserves original hashes           | Creates new hashes             |
-| **Complexity**          | Simple, safe                        | More complex, rewrites history |
-| **Conflict Resolution** | One merge conflict resolution       | Resolve conflicts per commit   |
-| **When to Use**         | Public/shared branches              | Private feature branches       |
-| **History Clarity**     | Can be messy with many branches     | Clean, linear, easy to read    |
-| **Risk Level**          | Low risk                            | Higher risk (rewrites history) |
-| **Collaboration**       | Safe for shared branches            | Dangerous for shared branches  |
+| Aspect            | Git Merge                     | Git Rebase                     |
+| ----------------- | ----------------------------- | ------------------------------ |
+| **History**       | Preserves branching structure | Creates linear history         |
+| **Merge Commits** | Creates merge commit          | No merge commits               |
+| **Commit Hashes** | Preserves original            | Creates new hashes             |
+| **Risk Level**    | Low risk                      | Higher risk (rewrites history) |
+| **When to Use**   | Public/shared branches        | Private feature branches       |
 
-### When to Use Merge
+### When to Use Each
 
-1. **Merging into main/master**: Preserves exact history
-2. **Shared branches**: Others might be working on the branch
-3. **Public repositories**: Don't rewrite public history
-4. **When you want merge commits**: Some teams prefer explicit merge commits
+**Use Merge:**
 
-### When to Use Rebase
+- Merging into main/master
+- Shared branches
+- Public repositories
 
-1. **Feature branches**: Before merging into main
-2. **Personal branches**: Only you are working on it
-3. **Clean history**: Want linear, easy-to-read history
-4. **Before code review**: Clean up commits before PR
+**Use Rebase:**
 
-### Hybrid Approach
+- Feature branches (before merging)
+- Personal branches
+- Before code review
 
-Many teams use both:
+### What Happens When You Pull (Merge) Then Create a Pull Request
 
-- **Rebase** feature branches before merging
-- **Merge** into main to preserve history
-- Result: Clean history with preserved merge points
+**Scenario:** You pull main into your feature branch (without rebase), then create a PR.
+
+**What happens:**
+
+1. **You pull main into your feature branch:**
+
+   ```bash
+   git checkout feature-branch
+   git pull origin main  # This does a MERGE, not rebase
+   ```
+
+2. **Git creates a merge commit:**
+
+   ```
+   main:     A---B---C---D
+                \       \
+   feature:      E---F---M (merge commit from pulling main)
+   ```
+
+3. **Your feature branch now has:**
+
+   - Your original commits (E, F)
+   - A merge commit (M) that combines main's changes
+   - Both histories mixed together
+
+4. **When you create a Pull Request:**
+
+   **What the PR shows:**
+
+   - Your feature commits (E, F)
+   - The merge commit (M)
+   - The PR diff includes:
+     - Your changes
+     - The merge commit (noise)
+     - Potentially harder to review due to merge commits
+
+   **Problems:**
+
+   - ❌ **Messier history:** Merge commits clutter the PR
+   - ❌ **Harder to review:** Reviewers see merge commits mixed with your changes
+   - ❌ **Not linear:** The PR graph shows branching/merging instead of clean linear history
+   - ❌ **May show conflicts:** If main changed significantly, the merge commit might include conflict resolution that makes the PR harder to understand
+
+**Visual comparison:**
+
+**With merge (what happens with pull):**
+
+```
+PR shows:
+main:     A---B---C---D
+                \       \
+feature:         E---F---M---G
+                      ↑
+                   Merge commit visible in PR
+```
+
+**With rebase (cleaner):**
+
+```
+PR shows:
+main:     A---B---C---D
+                      \
+feature:               E'---F'---G'
+                      ↑
+                   Clean linear history
+```
+
+**Bottom line:**
+
+If you pull (merge) before creating a PR, the PR will include merge commits, making the history messier and harder to review. That's why many teams prefer rebasing before creating PRs — it keeps the PR history clean and linear.
 
 ---
 
-## Step-by-Step Rebase Workflows
+## Git Cherry-Pick
 
-### Workflow 1: Standard Feature Branch Rebase
+**Git cherry-pick** is a command that allows you to apply specific commits from one branch to another branch. Unlike rebase (which moves all commits) or merge (which combines branches), cherry-pick lets you selectively copy individual commits.
 
-**Scenario:** You've been working on a feature, and main has new commits.
+### What is Git Cherry-Pick?
 
-```bash
-# Step 1: Ensure you're on your feature branch
-git checkout feature-branch
+Cherry-pick takes a commit (or multiple commits) from one branch and applies it to your current branch, creating a new commit with the same changes but a different commit hash.
 
-# Step 2: Fetch latest changes from remote
-git fetch origin
+### Visual Understanding
 
-# Step 3: Rebase onto latest main
-git rebase origin/main
+**Before Cherry-Pick:**
 
-# Step 4: If conflicts occur, resolve them
-# (See "Handling Conflicts" section)
-
-# Step 5: Push your rebased branch
-git push --force-with-lease origin feature-branch
+```
+main:        A---B---C---D
+                    \
+feature:             E---F---G
+                          ↑
+                    Want to copy F to main
 ```
 
-### Workflow 2: Rebase Before Creating Pull Request
+**After Cherry-Pick:**
 
-**Scenario:** You're ready to create a PR but want clean history.
+```
+main:        A---B---C---D---F' (copied commit)
+                    \
+feature:             E---F---G (original unchanged)
+```
+
+**Key Points:**
+
+- Original commit remains in source branch
+- New commit is created in target branch (different hash)
+- Only the selected commit(s) are copied
+- Commit message is preserved (unless you edit it)
+
+---
+
+### How to Use Git Cherry-Pick
+
+#### Basic Syntax
 
 ```bash
-# Step 1: Make sure main is up to date
+# Cherry-pick a single commit
+git cherry-pick <commit-hash>
+
+# Cherry-pick multiple commits
+git cherry-pick <commit-hash-1> <commit-hash-2> <commit-hash-3>
+
+# Cherry-pick a range of commits
+git cherry-pick <start-hash>..<end-hash>  # Excludes start, includes end
+git cherry-pick <start-hash>^..<end-hash> # Includes both start and end
+```
+
+#### Step-by-Step Process
+
+1. **Find the commit hash:**
+
+   ```bash
+   # View commit history
+   git log --oneline
+
+   # Or view commits on another branch
+   git log --oneline feature-branch
+   ```
+
+2. **Switch to target branch:**
+
+   ```bash
+   git checkout main
+   ```
+
+3. **Cherry-pick the commit:**
+
+   ```bash
+   git cherry-pick abc123
+   ```
+
+4. **Result:** The commit is now on your current branch.
+
+#### Example Workflow
+
+```bash
+# 1. You're on main branch
+git checkout main
+
+# 2. View commits on feature branch
+git log --oneline feature-branch
+# Output:
+# def456 Add new feature
+# abc123 Fix critical bug  ← Want this one
+# 789xyz Initial commit
+
+# 3. Cherry-pick the bug fix
+git cherry-pick abc123
+
+# 4. Result: Bug fix is now on main
+git log --oneline
+# Output:
+# abc123 Fix critical bug  ← Now on main
+# ... previous commits
+```
+
+---
+
+### When to Use Cherry-Pick
+
+#### Use Case #1: Hotfix to Production
+
+**Scenario:** A critical bug was fixed in a feature branch, but the feature isn't ready. You need the fix in production immediately.
+
+```bash
+# Bug fix is in feature-branch
+git checkout main
+git cherry-pick abc123  # The bug fix commit
+git push origin main
+```
+
+**Why cherry-pick:** You only want the bug fix, not the entire feature branch.
+
+#### Use Case #2: Backporting Fixes
+
+**Scenario:** A bug was fixed in the latest version, but you need the fix in an older release branch.
+
+```bash
+# Fix is in main (v2.0)
+git checkout release-v1.0
+git cherry-pick abc123  # Apply fix to v1.0
+```
+
+**Why cherry-pick:** You want to apply a specific fix to multiple branches without merging everything.
+
+#### Use Case #3: Selective Commit Application
+
+**Scenario:** A feature branch has 10 commits, but only 2 are ready for main. You want those 2 commits now.
+
+```bash
+git checkout main
+git cherry-pick abc123 def456  # Only these 2 commits
+```
+
+**Why cherry-pick:** You can selectively choose which commits to apply.
+
+#### Use Case #4: Moving Commits Between Branches
+
+**Scenario:** You accidentally committed to the wrong branch.
+
+```bash
+# Commit is on wrong-branch
+git checkout correct-branch
+git cherry-pick abc123  # Move commit here
+git checkout wrong-branch
+git reset --hard HEAD~1  # Remove from wrong branch
+```
+
+**Why cherry-pick:** Quick way to move a commit without complex rebasing.
+
+#### Use Case #5: Applying Someone Else's Commit
+
+**Scenario:** A teammate made a useful commit on their branch, and you want it on yours.
+
+```bash
+git checkout your-branch
+git cherry-pick abc123  # Their commit hash
+```
+
+**Why cherry-pick:** You can incorporate specific work without merging entire branches.
+
+---
+
+### Cherry-Pick Options
+
+#### 1. Edit Commit Message
+
+```bash
+git cherry-pick -e abc123  # Opens editor to edit message
+```
+
+#### 2. Cherry-Pick Without Committing
+
+```bash
+git cherry-pick -n abc123  # Applies changes but doesn't commit
+# or
+git cherry-pick --no-commit abc123
+
+# Then you can review and commit manually
+git add .
+git commit -m "Custom message"
+```
+
+#### 3. Cherry-Pick Multiple Commits
+
+```bash
+# Cherry-pick 3 specific commits
+git cherry-pick abc123 def456 ghi789
+
+# Cherry-pick a range (excludes start, includes end)
+git cherry-pick abc123..ghi789
+
+# Cherry-pick a range (includes both)
+git cherry-pick abc123^..ghi789
+```
+
+#### 4. Continue After Conflicts
+
+```bash
+# Resolve conflicts, then:
+git add .
+git cherry-pick --continue
+```
+
+#### 5. Abort Cherry-Pick
+
+```bash
+git cherry-pick --abort  # Cancel the operation
+```
+
+---
+
+### Handling Conflicts During Cherry-Pick
+
+Cherry-pick can create conflicts if the commit depends on code that doesn't exist in the target branch.
+
+#### Conflict Resolution Process
+
+1. **Cherry-pick creates conflict:**
+
+   ```bash
+   git cherry-pick abc123
+   # CONFLICT (content): Merge conflict in file.txt
+   ```
+
+2. **Identify conflicted files:**
+
+   ```bash
+   git status
+   ```
+
+3. **Resolve conflicts manually:**
+
+   Open the file and look for conflict markers:
+
+   ```
+   <<<<<<< HEAD
+   Code from current branch (main)
+   =======
+   Code from cherry-picked commit
+   >>>>>>> abc123 (Commit message)
+   ```
+
+4. **Resolve and continue:**
+
+   ```bash
+   git add file.txt
+   git cherry-pick --continue
+   ```
+
+5. **Or abort:**
+
+   ```bash
+   git cherry-pick --abort
+   ```
+
+---
+
+### Cherry-Pick vs Rebase vs Merge
+
+| Aspect           | Cherry-Pick                   | Rebase                    | Merge                      |
+| ---------------- | ----------------------------- | ------------------------- | -------------------------- |
+| **What it does** | Copies specific commits       | Moves all commits         | Combines entire branches   |
+| **Selectivity**  | ✅ Selective (choose commits) | ❌ All commits            | ❌ Entire branch           |
+| **History**      | Creates new commits           | Rewrites history          | Preserves all history      |
+| **Use case**     | Single/few commits            | Feature branch cleanup    | Integrating branches       |
+| **Risk level**   | Low (only affects target)     | Medium (rewrites history) | Low (preserves everything) |
+
+### When to Use Each
+
+**Use Cherry-Pick when:**
+
+- ✅ You need specific commits, not the whole branch
+- ✅ Hotfixing production
+- ✅ Backporting fixes
+- ✅ Moving commits between branches
+
+**Use Rebase when:**
+
+- ✅ Cleaning up feature branch before merge
+- ✅ Updating feature branch with latest main
+- ✅ Creating linear history
+
+**Use Merge when:**
+
+- ✅ Integrating complete feature branches
+- ✅ Preserving full history
+- ✅ Merging into main/master
+
+---
+
+### Best Practices for Cherry-Pick
+
+#### 1. **Always Test After Cherry-Picking**
+
+```bash
+git cherry-pick abc123
+npm test  # Ensure nothing broke
+```
+
+#### 2. **Cherry-Pick Related Commits Together**
+
+If commits depend on each other, cherry-pick them together:
+
+```bash
+# Good: Pick related commits together
+git cherry-pick abc123 def456  # These depend on each other
+
+# Bad: Picking one without the other
+git cherry-pick abc123  # Missing dependency
+```
+
+#### 3. **Use `-n` to Review Before Committing**
+
+```bash
+git cherry-pick -n abc123
+# Review changes
+git diff
+# If good, commit
+git commit -m "Applied fix from feature branch"
+```
+
+#### 4. **Document Why You Cherry-Picked**
+
+In your commit message or PR description, explain why you cherry-picked:
+
+```bash
+git cherry-pick -e abc123
+# Edit message to: "Cherry-picked hotfix from feature-branch"
+```
+
+#### 5. **Avoid Cherry-Picking Already Merged Commits**
+
+If a commit is already in the target branch (via merge), cherry-picking it again creates a duplicate. Check first:
+
+```bash
+git log --oneline main | grep "Fix bug"  # Check if already exists
+```
+
+---
+
+### Common Cherry-Pick Scenarios
+
+#### Scenario 1: Hotfix Workflow
+
+```bash
+# 1. Bug found in production
 git checkout main
 git pull origin main
 
-# Step 2: Switch to feature branch
-git checkout feature-branch
+# 2. Create hotfix branch
+git checkout -b hotfix/critical-bug
 
-# Step 3: Rebase onto main
-git rebase main
-
-# Step 4: Resolve any conflicts
+# 3. Fix the bug
+# ... make changes ...
 git add .
-git rebase --continue
+git commit -m "Fix critical bug"
 
-# Step 5: Push rebased branch
-git push --force-with-lease origin feature-branch
+# 4. Merge to main
+git checkout main
+git merge hotfix/critical-bug
+git push origin main
 
-# Step 6: Create pull request
-# (Now your PR shows clean, linear history)
+# 5. Also apply to feature branch
+git checkout feature-branch
+git cherry-pick abc123  # The hotfix commit
 ```
 
-### Workflow 3: Regular Sync with Main
-
-**Scenario:** Long-lived feature branch that needs regular updates.
+#### Scenario 2: Backporting
 
 ```bash
-# Weekly sync routine
-git checkout feature-branch
+# Fix is in main (v2.0)
+git log --oneline main
+# abc123 Fix security vulnerability
 
-# Fetch latest
-git fetch origin
-
-# Rebase onto main
-git rebase origin/main
-
-# Test your feature still works
-npm test  # or your test command
-
-# Push if everything works
-git push --force-with-lease origin feature-branch
+# Apply to older version
+git checkout release-v1.0
+git cherry-pick abc123
+git push origin release-v1.0
 ```
 
-### Workflow 4: Clean Up Commits Before Push
-
-**Scenario:** You have messy commit history locally.
+#### Scenario 3: Selective Feature Integration
 
 ```bash
-# Step 1: See your recent commits
-git log --oneline -10
+# Feature branch has 5 commits, but only 2 are ready
+git log --oneline feature-branch
+# ghi789 Add feature part 3
+# def456 Add feature part 2  ← Ready
+# abc123 Add feature part 1  ← Ready
+# 789xyz Setup
 
-# Step 2: Interactive rebase to clean up
-git rebase -i HEAD~10
-
-# Step 3: In editor, squash/fixup/reword commits
-# Save and close
-
-# Step 4: If editing commits, git will pause
-# Make changes, then:
-git add .
-git commit --amend
-git rebase --continue
-
-# Step 5: Push cleaned history
-git push --force-with-lease origin feature-branch
+# Cherry-pick only the ready ones
+git checkout main
+git cherry-pick abc123 def456
 ```
 
-### Workflow 5: Rebase After Pull Request Feedback
+---
 
-**Scenario:** You got feedback on PR and need to make changes.
+### Common Mistakes with Cherry-Pick
+
+#### Mistake #1: Cherry-Picking Already Merged Commits
 
 ```bash
-# Step 1: Make changes locally
-git checkout feature-branch
-# Edit files
+# ❌ WRONG: Commit already in main via merge
+git cherry-pick abc123  # Creates duplicate
+
+# ✅ CORRECT: Check first
+git log --oneline main | grep "commit message"
+```
+
+#### Mistake #2: Cherry-Picking Out of Order
+
+```bash
+# ❌ WRONG: Picking commit that depends on another
+git cherry-pick def456  # This depends on abc123
+# Missing dependency causes issues
+
+# ✅ CORRECT: Pick in order or together
+git cherry-pick abc123 def456
+```
+
+#### Mistake #3: Not Testing After Cherry-Pick
+
+```bash
+# ❌ WRONG: Push immediately
+git cherry-pick abc123
+git push
+
+# ✅ CORRECT: Test first
+git cherry-pick abc123
+npm test
+git push  # Only if tests pass
+```
+
+#### Mistake #4: Cherry-Picking Merge Commits
+
+```bash
+# ❌ WRONG: Cherry-picking a merge commit
+git cherry-pick abc123  # If abc123 is a merge commit
+
+# ✅ CORRECT: Cherry-pick the actual commits, not merge commits
+# Find the commits that were merged
+git log --oneline abc123^..abc123
+```
+
+---
+
+### Troubleshooting Cherry-Pick
+
+#### Issue #1: "Cherry-Pick Conflicts"
+
+**Solution:** Resolve conflicts manually, then continue:
+
+```bash
+git cherry-pick abc123
+# Resolve conflicts in files
 git add .
-git commit -m "Address PR feedback"
+git cherry-pick --continue
+```
 
-# Step 2: Rebase to keep history clean
-git rebase -i HEAD~2  # Include your new commit
+#### Issue #2: "Empty Cherry-Pick"
 
-# Step 3: Squash or reword as needed
-# Step 4: Push
-git push --force-with-lease origin feature-branch
+**Solution:** The commit is already in the target branch. Check:
 
-# PR automatically updates with new commits
+```bash
+git log --oneline | grep "commit message"
+# If found, skip cherry-pick
+```
+
+#### Issue #3: "Cherry-Pick Failed"
+
+**Solution:** Abort and investigate:
+
+```bash
+git cherry-pick --abort
+git log --oneline <source-branch>  # Verify commit exists
+git status  # Check for uncommitted changes
+```
+
+---
+
+### Quick Reference: Cherry-Pick Commands
+
+```bash
+# Basic cherry-pick
+git cherry-pick <commit-hash>
+
+# Multiple commits
+git cherry-pick <hash1> <hash2> <hash3>
+
+# Range of commits
+git cherry-pick <start>..<end>
+git cherry-pick <start>^..<end>
+
+# Options
+git cherry-pick -e <hash>        # Edit commit message
+git cherry-pick -n <hash>         # Don't commit yet
+git cherry-pick --no-commit <hash> # Same as -n
+
+# After conflicts
+git cherry-pick --continue
+git cherry-pick --abort
+git cherry-pick --skip
+
+# Find commit hash
+git log --oneline
+git log --oneline <branch-name>
 ```
 
 ---
 
 ## Handling Conflicts During Rebase
 
-### Understanding Rebase Conflicts
-
-During rebase, conflicts occur when:
-
-- The same file was modified in both branches
-- Git cannot automatically determine which changes to keep
-
 ### Conflict Resolution Process
 
-#### Step 1: Rebase Starts
+1. **Rebase starts:**
 
-```bash
-git rebase main
-```
+   ```bash
+   git rebase main
+   # CONFLICT (content): Merge conflict in file.txt
+   ```
 
-**Output:**
+2. **Identify conflicted files:**
 
-```
-Auto-merging file.txt
-CONFLICT (content): Merge conflict in file.txt
-error: could not apply abc123... Your commit message
-hint: Resolve all conflicts manually, mark them as resolved with
-hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
-```
+   ```bash
+   git status
+   ```
 
-#### Step 2: Identify Conflicted Files
+3. **Resolve conflicts:**
+   Open file and look for conflict markers:
 
-```bash
-git status
-```
+   ```
+   <<<<<<< HEAD
+   Code from main branch
+   =======
+   Your code from feature branch
+   >>>>>>> abc123 (Your commit message)
+   ```
 
-**Shows:**
+   Edit to resolve, then:
 
-```
-interactive rebase in progress; onto def456
-Last command done (1 command done):
-   pick abc123 Your commit message
-No commands remaining.
-You are currently rebasing branch 'feature' on 'def456'.
-  (fix conflicts and then run "git rebase --continue")
-  (use "git rebase --skip" to skip this commit)
-  (use "git rebase --abort" to cancel the rebase)
+   ```bash
+   git add file.txt
+   git rebase --continue
+   ```
 
-Unmerged paths:
-  (use "git add <file>..." to mark resolution)
-        both modified:   file.txt
-```
+4. **If more conflicts:** Repeat steps 2-3 for each commit.
 
-#### Step 3: Open and Resolve Conflicts
-
-Open `file.txt` and look for conflict markers:
-
-```
-<<<<<<< HEAD
-Code from main branch
-=======
-Your code from feature branch
->>>>>>> abc123 (Your commit message)
-```
-
-**Resolve by:**
-
-1. **Keeping both changes:**
-
-```
-Code from main branch
-Your code from feature branch
-```
-
-2. **Keeping only main:**
-
-```
-Code from main branch
-```
-
-3. **Keeping only yours:**
-
-```
-Your code from feature branch
-```
-
-4. **Custom merge:**
-
-```
-Your merged version of the code
-```
-
-#### Step 4: Stage Resolved Files
-
-```bash
-git add file.txt
-```
-
-#### Step 5: Continue Rebase
-
-```bash
-git rebase --continue
-```
-
-**If more conflicts occur:** Repeat steps 2-5 for each conflicted commit.
-
-#### Step 6: Complete Rebase
-
-```bash
-# When all conflicts resolved
-Successfully rebased and updated refs/heads/feature-branch.
-```
+5. **Complete:**
+   ```bash
+   Successfully rebased and updated refs/heads/feature-branch.
+   ```
 
 ### Aborting Rebase
 
-If conflicts are too complex or you want to start over:
-
 ```bash
-git rebase --abort
-```
-
-**Result:** Returns to state before rebase started.
-
-### Skipping a Commit
-
-If you want to drop the commit causing conflict:
-
-```bash
-git rebase --skip
-```
-
-**Warning:** This permanently removes the commit from history.
-
-### Conflict Resolution Tips
-
-1. **One commit at a time:** Rebase resolves conflicts commit-by-commit
-2. **Understand the context:** Read commit messages to understand changes
-3. **Test after resolution:** Ensure code still works
-4. **Use merge tools:** `git mergetool` opens visual merge tool
-5. **Keep backup:** Create backup branch before rebase
-   ```bash
-   git branch backup-feature
-   git rebase main
-   ```
-
----
-
-## Common Scenarios and Solutions
-
-### Scenario 1: "I Already Pushed My Branch"
-
-**Problem:** You want to rebase but already pushed to remote.
-
-**Solution:**
-
-```bash
-# Rebase locally
-git rebase main
-
-# Force push (use --force-with-lease for safety)
-git push --force-with-lease origin feature-branch
-```
-
-**Warning:** Only do this if:
-
-- You're the only one working on the branch
-- Or you've coordinated with your team
-
-### Scenario 2: "Someone Else Pushed to My Branch"
-
-**Problem:** You rebased locally, but someone else pushed commits to remote.
-
-**Solution:**
-
-```bash
-# Fetch their changes
-git fetch origin
-
-# Rebase again to include their commits
-git rebase origin/feature-branch
-
-# Or merge their changes first
-git merge origin/feature-branch
-# Then rebase
-git rebase main
-```
-
-**Better approach:** Coordinate with team or use merge instead.
-
-### Scenario 3: "I Want to Undo a Rebase"
-
-**Problem:** Rebase went wrong and you want to undo it.
-
-**Solution:**
-
-```bash
-# Find the commit before rebase
-git reflog
-
-# Reset to that commit
-git reset --hard HEAD@{2}  # Use number from reflog
-```
-
-**Or if you just finished rebase:**
-
-```bash
-git rebase --abort  # If still in rebase
-# OR
-git reset --hard ORIG_HEAD  # If rebase completed
-```
-
-### Scenario 4: "Rebase Takes Too Long"
-
-**Problem:** Rebase is slow with many commits.
-
-**Solution:**
-
-```bash
-# Use merge instead for this time
-git merge main
-
-# Or rebase in smaller chunks
-git rebase -i HEAD~10  # Rebase last 10 commits
-```
-
-### Scenario 5: "I Want to Rebase Only Some Commits"
-
-**Problem:** You want to rebase onto a different base commit.
-
-**Solution:**
-
-```bash
-# Rebase onto specific commit
-git rebase --onto main feature-branch~5 feature-branch
-
-# This takes commits from feature-branch~5 to feature-branch
-# and replays them onto main
-```
-
-### Scenario 6: "I Accidentally Rebased Main"
-
-**Problem:** You rebased main branch (should never do this).
-
-**Solution:**
-
-```bash
-# Immediately undo
-git reflog
-git reset --hard HEAD@{1}  # Before rebase
-
-# Warn your team if you already pushed
-# They'll need to reset their local main
-```
-
-### Scenario 7: "Rebase Created Duplicate Commits"
-
-**Problem:** After rebase, you see duplicate commits.
-
-**Cause:** You rebased onto a branch that already had your commits.
-
-**Solution:**
-
-```bash
-# Check what happened
-git log --oneline --graph --all
-
-# If duplicates exist, use interactive rebase to remove them
-git rebase -i main
-# Drop duplicate commits
-```
-
-### Scenario 8: "I Want to Rebase But Keep Merge Commits"
-
-**Problem:** You want linear history but preserve some merge commits.
-
-**Solution:**
-
-```bash
-# Use --preserve-merges (deprecated) or --rebase-merges
-git rebase --rebase-merges main
+git rebase --abort  # Returns to state before rebase
 ```
 
 ---
@@ -1139,8 +943,6 @@ git rebase --rebase-merges main
 ### Golden Rule #1: Never Rebase Public/Shared Branches
 
 **Rule:** Never rebase branches that others are working on.
-
-**Why:** Rebase rewrites history. If others have based work on your commits, their work will break.
 
 **Safe to rebase:**
 
@@ -1152,33 +954,22 @@ git rebase --rebase-merges main
 
 - ❌ main/master branch
 - ❌ Branches others are using
-- ❌ Already-merged branches
 
 ### Golden Rule #2: Rebase Before Merging, Not After
-
-**Rule:** Rebase your feature branch before merging into main.
-
-**Why:** Creates clean history in main without affecting others.
-
-**Workflow:**
 
 ```bash
 # ✅ Good: Rebase feature branch
 git checkout feature-branch
 git rebase main
 git checkout main
-git merge feature-branch  # Fast-forward merge
+git merge feature-branch
 
 # ❌ Bad: Rebase main
 git checkout main
 git rebase feature-branch  # DON'T DO THIS
 ```
 
-### Golden Rule #3: Always Use `--force-with-lease` When Force Pushing
-
-**Rule:** Use `--force-with-lease` instead of `--force` when pushing after rebase.
-
-**Why:** Safer - only pushes if remote hasn't changed.
+### Golden Rule #3: Always Use `--force-with-lease`
 
 ```bash
 # ✅ Good
@@ -1188,410 +979,151 @@ git push --force-with-lease origin feature-branch
 git push --force origin feature-branch
 ```
 
-### Best Practice #1: Keep Feature Branches Short-Lived
+### Best Practices
 
-**Practice:** Rebase frequently and merge quickly.
+1. **Test after rebase:**
 
-**Why:** Reduces conflicts and keeps history manageable.
+   ```bash
+   git rebase main
+   npm test  # Run tests
+   ```
 
-**Routine:**
+2. **Create backup before major rebases:**
 
-```bash
-# Daily or before major work
-git fetch origin
-git rebase origin/main
-```
+   ```bash
+   git branch backup-feature-branch
+   git rebase main
+   ```
 
-### Best Practice #2: Test After Rebase
-
-**Practice:** Always test your code after rebasing.
-
-**Why:** Rebase can introduce issues, especially with conflicts.
-
-```bash
-git rebase main
-npm test  # Run your tests
-# Only push if tests pass
-```
-
-### Best Practice #3: Create Backup Branches
-
-**Practice:** Create backup before major rebases.
-
-**Why:** Easy recovery if something goes wrong.
-
-```bash
-git branch backup-feature-branch
-git rebase main
-# If something goes wrong:
-git reset --hard backup-feature-branch
-```
-
-### Best Practice #4: Rebase One Feature at a Time
-
-**Practice:** Don't rebase multiple unrelated features together.
-
-**Why:** Easier to understand and resolve conflicts.
-
-### Best Practice #5: Write Clear Commit Messages
-
-**Practice:** Good commit messages make rebase easier.
-
-**Why:** When conflicts occur, clear messages help understand changes.
-
-### Best Practice #6: Rebase Before Code Review
-
-**Practice:** Clean up commits before creating pull request.
-
-**Why:** Reviewers see clean, logical commit history.
-
-```bash
-# Before PR
-git rebase -i main  # Clean up commits
-git push --force-with-lease
-# Create PR
-```
-
-### Best Practice #7: Communicate with Team
-
-**Practice:** Tell team when you're rebasing shared branches.
-
-**Why:** Prevents conflicts and confusion.
-
-**Example:**
-
-```
-Team chat: "Rebasing feature-branch, will force push in 10 min"
-```
+3. **Rebase before code review:**
+   ```bash
+   git rebase -i main  # Clean up commits
+   git push --force-with-lease
+   ```
 
 ---
 
-## Common Mistakes and How to Avoid Them
+## Common Mistakes
 
 ### Mistake #1: Rebasing Main/Master Branch
 
-**Mistake:**
-
 ```bash
+# ❌ WRONG
 git checkout main
-git rebase feature-branch  # ❌ WRONG
-```
+git rebase feature-branch
 
-**Why it's bad:** Main is shared by everyone. Rebasing rewrites history others depend on.
-
-**Correct approach:**
-
-```bash
+# ✅ CORRECT
 git checkout feature-branch
-git rebase main  # ✅ CORRECT
-git checkout main
-git merge feature-branch
+git rebase main
 ```
 
 ### Mistake #2: Force Pushing Without `--force-with-lease`
 
-**Mistake:**
-
 ```bash
-git push --force origin feature-branch  # ❌ DANGEROUS
+# ❌ DANGEROUS
+git push --force origin feature-branch
+
+# ✅ SAFER
+git push --force-with-lease origin feature-branch
 ```
 
-**Why it's bad:** Overwrites remote branch even if others pushed changes.
-
-**Correct approach:**
+### Mistake #3: Not Testing After Rebase
 
 ```bash
-git push --force-with-lease origin feature-branch  # ✅ SAFER
-```
-
-### Mistake #3: Rebasing Already-Merged Branches
-
-**Mistake:**
-
-```bash
-# Branch already merged to main
-git checkout merged-feature
-git rebase main  # ❌ UNNECESSARY
-```
-
-**Why it's bad:** Creates duplicate commits and confusion.
-
-**Correct approach:** Don't rebase merged branches. They're done.
-
-### Mistake #4: Not Testing After Rebase
-
-**Mistake:**
-
-```bash
+# ❌ Without testing
 git rebase main
-git push --force-with-lease  # ❌ Without testing
-```
+git push --force-with-lease
 
-**Why it's bad:** Rebase can break code, especially with conflicts.
-
-**Correct approach:**
-
-```bash
+# ✅ Test first
 git rebase main
-npm test  # ✅ Test first
+npm test
 git push --force-with-lease  # Only if tests pass
 ```
 
-### Mistake #5: Rebasing Branches Others Are Using
+### Mistake #4: Rebasing Branches Others Are Using
 
-**Mistake:**
+**Solution:** Coordinate with team or use merge instead.
+
+### Mistake #5: Not Fetching Before Rebase
 
 ```bash
-# Teammate is also working on this branch
+# ❌ Using stale local main
 git rebase main
-git push --force  # ❌ BREAKS TEAMMATE'S WORK
-```
 
-**Why it's bad:** Teammate's local branch becomes out of sync.
-
-**Correct approach:**
-
-- Coordinate with team
-- Or use merge instead
-- Or create your own branch
-
-### Mistake #6: Aborting Rebase When Almost Done
-
-**Mistake:**
-
-```bash
-# Resolved 8 of 10 conflicts
-git rebase --abort  # ❌ WASTES WORK
-```
-
-**Why it's bad:** Loses all conflict resolution work.
-
-**Correct approach:** Continue and finish:
-
-```bash
-git rebase --continue  # ✅ Finish the job
-```
-
-### Mistake #7: Interactive Rebase Without Understanding
-
-**Mistake:**
-
-```bash
-git rebase -i HEAD~20  # ❌ Too many commits, unclear what to do
-```
-
-**Why it's bad:** Easy to make mistakes with many commits.
-
-**Correct approach:**
-
-```bash
-git rebase -i HEAD~5  # ✅ Start small, learn gradually
-```
-
-### Mistake #8: Not Fetching Before Rebase
-
-**Mistake:**
-
-```bash
-git rebase main  # ❌ Using stale local main
-```
-
-**Why it's bad:** Rebasing onto outdated branch defeats the purpose.
-
-**Correct approach:**
-
-```bash
-git fetch origin  # ✅ Get latest
+# ✅ Get latest first
+git fetch origin
 git rebase origin/main
-```
-
-### Mistake #9: Rebasing During Active Development
-
-**Mistake:**
-
-```bash
-# In middle of coding
-git rebase main  # ❌ Interrupts workflow
-```
-
-**Why it's bad:** Rebase can take time, especially with conflicts.
-
-**Correct approach:** Rebase at natural break points:
-
-- Before starting new feature
-- Before creating PR
-- End of day/week
-
-### Mistake #10: Forgetting to Push After Rebase
-
-**Mistake:**
-
-```bash
-git rebase main
-# Forget to push
-# Work continues on old remote version
-```
-
-**Why it's bad:** Local and remote diverge.
-
-**Correct approach:**
-
-```bash
-git rebase main
-git push --force-with-lease  # ✅ Push immediately
 ```
 
 ---
 
-## Troubleshooting Rebase Issues
+## Troubleshooting
 
 ### Issue #1: "Rebase Conflicts That Won't Resolve"
 
-**Symptoms:** Conflicts keep appearing, can't resolve.
-
 **Solutions:**
 
-1. **Use merge tool:**
+1. Use merge tool:
 
-```bash
-git mergetool
-```
+   ```bash
+   git mergetool
+   ```
 
-2. **Accept one version entirely:**
+2. Accept one version entirely:
 
-```bash
-# Keep theirs (main branch)
-git checkout --theirs file.txt
-git add file.txt
-git rebase --continue
+   ```bash
+   # Keep theirs (main branch)
+   git checkout --theirs file.txt
+   git add file.txt
+   git rebase --continue
+   ```
 
-# Keep yours (feature branch)
-git checkout --ours file.txt
-git add file.txt
-git rebase --continue
-```
-
-3. **Abort and use merge instead:**
-
-```bash
-git rebase --abort
-git merge main  # Use merge for this time
-```
+3. Abort and use merge:
+   ```bash
+   git rebase --abort
+   git merge main
+   ```
 
 ### Issue #2: "Rebase Stuck in Interactive Mode"
 
-**Symptoms:** Editor won't close, rebase paused.
+**Solution:** Save and close editor:
 
-**Solutions:**
-
-1. **Save and close editor:**
-
-   - **In vim:** `:wq` then Enter (or `:x` then Enter)
-   - **In nano:**
-     - `Ctrl + O` (Write Out) - saves the file
-     - Press `Enter` to confirm filename
-     - `Ctrl + X` (Exit) - closes nano
-     - **Quick method:** `Ctrl + X`, then `Y` (yes to save), then `Enter`
-   - **In VS Code:** Save (`Ctrl+S`) and close the file
-
-2. **If editor won't close:**
-
-```bash
-# In another terminal
-git rebase --abort
-# Then try again with different editor
-GIT_EDITOR=nano git rebase -i HEAD~5
-```
+- **Nano:** `Ctrl + O`, `Enter`, `Ctrl + X`
+- **Vim:** `:wq` then `Enter`
+- **VS Code:** Save (`Ctrl+S`) and close
 
 ### Issue #3: "Lost Commits After Rebase"
-
-**Symptoms:** Commits disappeared after rebase.
 
 **Recovery:**
 
 ```bash
-# Find lost commits
 git reflog
-
-# See commit hashes and messages
-# Reset to before rebase
-git reset --hard HEAD@{5}  # Use number from reflog
-
-# Or cherry-pick specific commits
-git cherry-pick abc123
+git reset --hard HEAD@{2}  # Use number from reflog
 ```
 
-### Issue #4: "Rebase Created Empty Commits"
-
-**Symptoms:** After rebase, some commits are empty.
-
-**Cause:** Commits were already in target branch.
-
-**Solution:**
-
-```bash
-# Interactive rebase to remove empty commits
-git rebase -i main
-# Drop empty commits in editor
-```
-
-### Issue #5: "Cannot Rebase: Uncommitted Changes"
-
-**Symptoms:** Git won't start rebase.
-
-**Error:** "Cannot rebase: You have uncommitted changes"
+### Issue #4: "Cannot Rebase: Uncommitted Changes"
 
 **Solution:**
 
 ```bash
 # Option 1: Commit changes
 git add .
-git commit -m "WIP: Save current work"
+git commit -m "WIP"
 git rebase main
 
 # Option 2: Stash changes
 git stash
 git rebase main
 git stash pop
-
-# Option 3: Create new branch for changes
-git checkout -b temp-branch
-git add .
-git commit -m "Changes"
-git checkout feature-branch
-git rebase main
 ```
 
-### Issue #6: "Rebase Loop: Same Conflict Repeatedly"
+### Issue #5: "Commit Messages Still Show Old Messages"
 
-**Symptoms:** Same conflict appears in every commit.
+**Answer:** This is **NORMAL**! Regular rebase (`git rebase main`) does NOT change commit messages - it only replays them. To change messages, use interactive rebase (`git rebase -i main`) with `reword`.
 
-**Cause:** Conflict resolution wasn't applied correctly.
+### Issue #6: "Remote Rejected After Rebase"
 
 **Solution:**
-
-```bash
-# Abort rebase
-git rebase --abort
-
-# Use merge instead
-git merge main
-
-# Or resolve conflict once, then:
-git add .
-git commit --amend
-git rebase --continue
-```
-
-### Issue #7: "Remote Rejected After Rebase"
-
-**Symptoms:** Push rejected even with `--force-with-lease`.
-
-**Error:** "Updates were rejected"
-
-**Causes and Solutions:**
-
-1. **Remote has new commits:**
 
 ```bash
 git fetch origin
@@ -1599,335 +1131,22 @@ git rebase origin/feature-branch
 git push --force-with-lease
 ```
 
-2. **Branch protection rules:**
-
-   - Check repository settings
-   - May need admin override
-   - Or use merge instead
-
-3. **Someone else force-pushed:**
-
-```bash
-git fetch origin
-git reset --hard origin/feature-branch
-# Then rebase again
-```
-
-### Issue #8: "Rebase Takes Forever"
-
-**Symptoms:** Rebase is very slow.
-
-**Solutions:**
-
-1. **Check what's happening:**
-
-```bash
-git rebase --show-current-patch
-```
-
-2. **Use merge for this time:**
-
-```bash
-git rebase --abort
-git merge main
-```
-
-3. **Rebase in smaller chunks:**
-
-```bash
-git rebase -i HEAD~10  # Smaller number
-```
-
-### Issue #9: "Wrong Base Branch for Rebase"
-
-**Symptoms:** Rebased onto wrong branch.
-
-**Solution:**
-
-```bash
-# Abort if still in progress
-git rebase --abort
-
-# Or reset if completed
-git reflog
-git reset --hard HEAD@{2}  # Before wrong rebase
-
-# Rebase onto correct branch
-git rebase correct-branch
-```
-
-### Issue #10: "Git Says 'No Changes' After Rebase"
-
-**Symptoms:** Rebase completes but no changes visible.
-
-**Cause:** Your commits were already in target branch.
-
-**Solution:** This is normal - your branch is now up to date. No action needed.
-
-### Issue #11: "Commit Messages Still Show Old Messages After Rebase"
-
-**Symptoms:** After completing rebase, `git log` still shows the same commit messages.
-
-**Question:** "Do I need to do something else? Is this only for what will be merged into main?"
-
-**Answer:** This is **NORMAL and EXPECTED** behavior! Here's why:
-
-#### Understanding What Happens:
-
-1. **Regular Rebase (`git rebase main`) Does NOT Change Messages:**
-
-   - ✅ Commit messages stay exactly the same
-   - ✅ Only commit hashes change (because parent changed)
-   - ✅ This is the intended behavior
-
-2. **What Branch Are You Looking At?**
-
-   ```bash
-   # Check which branch you're on
-   git branch
-
-   # Check commits on your feature branch
-   git log --oneline feature-branch
-
-   # Check commits on main (won't change until merge)
-   git log --oneline main
-   ```
-
-3. **Rebase Only Affects Your Feature Branch:**
-
-   - ✅ Rebase changes your **feature-branch** commits
-   - ❌ Rebase does NOT change **main** branch (until you merge)
-   - ✅ When you merge feature-branch → main, those commits (with their messages) go into main
-
-4. **To Verify Rebase Worked:**
-
-   ```bash
-   # Check that your branch is now based on latest main
-   git log --oneline --graph feature-branch main
-
-   # You should see your commits on top of main's latest commits
-   ```
-
-5. **If You Want to Change Commit Messages:**
-
-   ```bash
-   # Use interactive rebase
-   git rebase -i main
-
-   # Change 'pick' to 'reword' for commits you want to change
-   # Git will open editor for each 'reword' commit
-   ```
-
-#### Summary:
-
-- **Old messages showing = Normal** - Regular rebase keeps messages the same
-- **Feature branch = What gets merged** - Yes, your feature branch commits (with their messages) are what will merge into main
-- **Main branch = Unchanged** - Main won't change until you merge your feature branch
-- **To change messages = Use interactive rebase** - `git rebase -i main` and use `reword`
-
-**You don't need to do anything else!** The rebase worked correctly. Your feature branch now has the latest main changes, and when you merge it, those commits (with their current messages) will go into main.
-
-### Issue #12: "Will Changing Commit Messages Through Rebase Change Them in Feature Branch?"
-
-**Question:** "If I change a commit message in feature-branch through rebase, will it change in the feature-branch too?"
-
-**Answer:** **YES! Absolutely!** When you use interactive rebase with `reword` on your feature-branch, the commit messages ARE changed in your feature-branch.
-
-#### How It Works:
-
-1. **You're on feature-branch:**
-
-   ```bash
-   git checkout feature-branch
-   git rebase -i main  # or git rebase -i HEAD~5
-   ```
-
-2. **You change `pick` to `reword`:**
-
-   ```
-   reword abc123 Old commit message
-   pick def456 Another commit
-   ```
-
-3. **Git opens editor for each `reword` commit:**
-
-   - You edit the message
-   - Save and close
-   - Git creates a NEW commit with the new message
-
-4. **Result:**
-   - ✅ **Your feature-branch NOW has the new commit message**
-   - ✅ The commit hash changes (because message changed)
-   - ✅ When you check `git log`, you'll see the NEW message
-   - ✅ When you merge to main, main will get the NEW message
-
-#### Example:
-
-**Before interactive rebase:**
-
-```bash
-git log --oneline feature-branch
-abc123 Fix typo
-def456 Add feature
-```
-
-**After `git rebase -i main` with `reword`:**
-
-```bash
-git log --oneline feature-branch
-xyz789 Fix typo in login form  # NEW message!
-def456 Add feature
-```
-
-**After merging to main:**
-
-```bash
-git checkout main
-git merge feature-branch
-git log --oneline main
-xyz789 Fix typo in login form  # Same new message in main!
-```
-
-#### Important Points:
-
-- ✅ **Changes happen immediately** - As soon as rebase completes, your feature-branch has new messages
-- ✅ **Feature-branch is modified** - The commits in your feature-branch are rewritten
-- ✅ **Main gets new messages** - When you merge, main receives commits with the new messages
-- ⚠️ **If already pushed** - You'll need `git push --force-with-lease` to update remote
-
-#### To Verify:
-
-```bash
-# After rebase, check your feature-branch
-git log --oneline feature-branch
-
-# You should see your NEW commit messages
-```
-
-**Bottom line:** Yes, changing commit messages through interactive rebase (`reword`) changes them in your feature-branch immediately. Those new messages will be what goes into main when you merge.
-
 ---
 
-## Advanced Rebase Techniques
-
-### Technique #1: Rebase Onto Different Base
-
-**Use case:** Change which commit your branch starts from.
-
-```bash
-# Current state:
-# main: A---B---C---D
-# feature:     E---F---G
-
-# Rebase feature commits onto C instead of B
-git rebase --onto main~1 feature-branch~3 feature-branch
-
-# Result: feature commits now based on C
-```
-
-### Technique #2: Rebase with Preserved Merges
-
-**Use case:** Keep merge commits during rebase.
-
-```bash
-# Rebase but preserve merge structure
-git rebase --rebase-merges main
-```
-
-### Technique #3: Rebase Only Specific Files
-
-**Use case:** Rebase but keep some files from target branch.
-
-```bash
-# Rebase normally
-git rebase main
-
-# During conflict, use checkout to get file from main
-git checkout --theirs important-file.txt
-git add important-file.txt
-git rebase --continue
-```
-
-### Technique #4: Rebase with Autosquash
-
-**Use case:** Automatically squash fixup commits.
-
-```bash
-# Create fixup commit
-git commit --fixup abc123
-
-# Rebase with autosquash
-git rebase -i --autosquash abc123~1
-# Fixup commit automatically squashed into abc123
-```
-
-### Technique #5: Rebase with Exec Commands
-
-**Use case:** Run tests after each commit during rebase.
-
-```bash
-git rebase -i main
-
-# In editor, add 'exec' commands:
-pick abc123 Commit 1
-exec npm test
-pick def456 Commit 2
-exec npm test
-```
-
-### Technique #6: Rebase with Strategy Options
-
-**Use case:** Control how conflicts are resolved.
-
-```bash
-# Prefer our changes
-git rebase -X ours main
-
-# Prefer their changes
-git rebase -X theirs main
-
-# Ignore whitespace
-git rebase --ignore-whitespace main
-```
-
-### Technique #7: Rebase with Committer Date Preservation
-
-**Use case:** Keep original commit dates.
-
-```bash
-git rebase --committer-date-is-author-date main
-```
-
-### Technique #8: Partial Rebase
-
-**Use case:** Rebase only some commits.
-
-```bash
-# Rebase commits from feature-branch~5 to feature-branch~2
-git rebase --onto main feature-branch~5 feature-branch~2
-```
-
----
-
-## Summary: Quick Reference
+## Quick Reference
 
 ### When Git Rebases Automatically
 
 1. ✅ `git pull --rebase` - Explicit flag
 2. ✅ `git pull` - If `pull.rebase = true` configured
 3. ✅ GitHub/GitLab "Rebase and merge" button
-4. ✅ Git hooks/scripts that run rebase
-5. ✅ CI/CD pipelines with rebase commands
 
 ### When You Must Rebase Manually
 
 1. ✅ Standard feature branch update: `git rebase main`
 2. ✅ Interactive rebase: `git rebase -i HEAD~5`
 3. ✅ Resolving conflicts: `git rebase --continue`
-4. ✅ Before first push: `git rebase main`
-5. ✅ After already pushing: `git rebase main` + `git push --force-with-lease`
-6. ✅ Rebase onto different base: `git rebase --onto`
-7. ✅ Removing sensitive data: `git rebase -i` to edit
+4. ✅ After already pushing: `git rebase main` + `git push --force-with-lease`
 
 ### Golden Rules
 
@@ -1956,8 +1175,14 @@ git rebase --skip
 # Force push after rebase
 git push --force-with-lease origin branch-name
 
-# Check rebase status
-git rebase --show-current-patch
+# Cherry-pick
+git cherry-pick <commit-hash>
+git cherry-pick <hash1> <hash2>
+git cherry-pick <start>..<end>
+git cherry-pick -e <hash>  # Edit message
+git cherry-pick -n <hash>  # Don't commit yet
+git cherry-pick --continue
+git cherry-pick --abort
 ```
 
 ### Editor Commands (When Interactive Rebase Opens)
@@ -1967,25 +1192,22 @@ git rebase --show-current-patch
 - Save: `Ctrl + O`, then `Enter`
 - Exit: `Ctrl + X`
 - Save and Exit: `Ctrl + X`, then `Y`, then `Enter`
-- Cancel: `Ctrl + X`, then `N`
 
 **Vim/Vi:**
 
-- Save and Exit: `:wq` then `Enter` (or `:x` then `Enter`)
+- Save and Exit: `:wq` then `Enter`
 - Exit without saving: `:q!` then `Enter`
-- Save: `:w` then `Enter`
-- Exit: `:q` then `Enter`
 
 **VS Code:**
 
-- Save: `Ctrl+S` (or `Cmd+S` on Mac)
-- Close: `Ctrl+W` (or `Cmd+W` on Mac)
+- Save: `Ctrl+S`
+- Close: `Ctrl+W`
 
 ---
 
 ## Conclusion
 
-Git rebase is a powerful tool for maintaining clean, linear commit history. Understanding when git does it automatically versus when you need to do it manually is crucial for effective version control.
+Git rebase and cherry-pick are powerful tools for managing commit history and selectively applying changes.
 
 **Key Takeaways:**
 
@@ -1995,9 +1217,8 @@ Git rebase is a powerful tool for maintaining clean, linear commit history. Unde
 4. **Never rebase shared branches** - Only your feature branches
 5. **Always test after rebase** - Ensure nothing broke
 6. **Use `--force-with-lease`** - Safer than `--force`
-
-With this guide, you should have no doubts about git rebase! Practice with small branches first, and you'll become comfortable with rebasing in no time.
-
----
+7. **Cherry-pick is selective** - Use it to apply specific commits, not entire branches
+8. **Cherry-pick creates new commits** - Original commits remain in source branch
+9. **Use cherry-pick for hotfixes** - Quick way to apply critical fixes to multiple branches
 
 **Remember:** When in doubt, create a backup branch and experiment. Git is forgiving if you know how to use reflog to recover!
