@@ -22,12 +22,3 @@ jobs:
 
     - name: Run tests
       run: npm test
-
-    - name: Build
-      run: npm run build
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-files
-        path: dist/
