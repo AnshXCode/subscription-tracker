@@ -2,23 +2,56 @@
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [What is Docker?](#what-is-docker)
-3. [Docker Architecture](#docker-architecture)
-4. [Installation](#installation)
-5. [Docker Images](#docker-images)
-6. [Docker Containers](#docker-containers)
-7. [Docker Volumes](#docker-volumes)
-8. [Docker Networks](#docker-networks)
-9. [Docker Context](#docker-context)
-10. [Docker Compose](#docker-compose)
-11. [Best Practices](#best-practices)
+1. [Quick Interview Essentials](#quick-interview-essentials)
+2. [Introduction](#introduction)
+3. [What is Docker?](#what-is-docker)
+4. [Docker Architecture](#docker-architecture)
+5. [Installation](#installation)
+6. [Docker Images](#docker-images)
+7. [Docker Containers](#docker-containers)
+8. [Docker Volumes](#docker-volumes)
+9. [Docker Networks](#docker-networks)
+10. [Docker Context](#docker-context)
+11. [Docker Compose](#docker-compose)
+12. [Best Practices](#best-practices)
 
 ---
 
 ## Introduction
 
 Docker is a platform that enables developers to package applications and their dependencies into lightweight, portable containers. This guide will walk you through Docker concepts from the ground up, helping you understand how to build, run, and manage containerized applications.
+
+---
+
+## Quick Interview Essentials
+
+- **Core commands (remember these)**
+  - Build: `docker build -t app .`
+  - Run: `docker run -d -p 80:80 app`
+  - List: `docker ps` (running), `docker ps -a` (all)
+  - Logs/exec: `docker logs -f c`, `docker exec -it c sh`
+  - Images: `docker images`, `docker pull`, `docker push`
+  - Clean: `docker system prune -f`
+- **Concepts to explain fast**
+  - Image vs container (template vs running instance)
+  - Layers and caching (order Dockerfile from stable to changing)
+  - `.dockerignore` to shrink build context
+  - Multi-stage builds to keep prod images small
+  - Ports: `-p host:container`; EXPOSE is documentation only
+  - Volumes: use named volumes for persistence; bind mounts for local dev
+  - Healthchecks change container status and let orchestrators restart
+  - Resource limits: `--cpus`, `-m`, `--memory-swap` to prevent noisy neighbors
+  - Security basics: avoid root, minimal base images, scan/sign images
+- **Compose essentials**
+  - Up/down: `docker compose up -d`, `docker compose down -v`
+  - Rebuild: `docker compose build --pull`
+  - Inspect logs: `docker compose logs -f svc`
+  - Override env: `docker compose --profile dev up`
+- **Troubleshooting quickies**
+  - Inspect: `docker inspect c` (config/state), `docker exec -it c sh` (poke inside)
+  - Network: `docker network inspect bridge`, `curl` from a sidecar
+  - Disk: `docker system df` then prune
+  - Exit codes: 137 = OOM kill, 143 = SIGTERM/SIGINT
 
 ### 🍽️ Complete Restaurant Analogy Overview
 
@@ -2802,32 +2835,62 @@ docker cp container:/path host/file    # Container to host
 
 ## Docker Volumes
 
-_[This section will be expanded in the next iteration]_
+- **Use cases:** persist data, share config, cache build artifacts.
+- **Types:** named (`-v data:/var/lib/app`) for prod persistence; bind mount (`-v $PWD:/app`) for local dev.
+- **Commands:** `docker volume ls`, `docker volume inspect name`, `docker volume rm name`, `docker volume prune`.
+- **Backups:** `docker run --rm -v data:/data -v $PWD:/backup busybox tar czf /backup/data.tgz /data`.
+- **Permissions:** prefer non-root user in image; adjust with `--user` or `chown` during init.
 
 ---
 
 ## Docker Networks
 
-_[This section will be expanded in the next iteration]_
+- **Modes:** bridge (default, NAT + port publishing), host (shares host stack), none (isolated).
+- **Create/use:** `docker network create app-net`; attach with `docker run --network app-net ...`.
+- **Discovery:** containers on same user-defined bridge can reach each other by container name.
+- **Port mapping:** host reachability via `-p 8080:80`; `EXPOSE` is documentation only.
+- **Inspect:** `docker network inspect app-net` to see IPs and aliases.
 
 ---
 
 ## Docker Context
 
-_[This section will be expanded in the next iteration]_
+- **Why:** switch quickly between local and remote daemons (e.g., remote VM or cloud).
+- **Create:** `docker context create staging --docker host=tcp://staging:2376`.
+- **Use:** `docker context use staging`; verify with `docker context ls`.
+- **Compose with context:** `docker --context staging compose up -d`.
 
 ---
 
 ## Docker Compose
 
-_[This section will be expanded in the next iteration]_
+- **Minimal example:**
+  ```yaml
+  services:
+    web:
+      build: .
+      ports: ["5173:5173"]
+      env_file: .env
+      depends_on: [api]
+    api:
+      image: ghcr.io/org/api:1.0
+      environment:
+        - DATABASE_URL=${DATABASE_URL}
+  ```
+- **Core commands:** `docker compose up -d`, `docker compose down -v`, `docker compose logs -f web`, `docker compose build --pull`, `docker compose exec web sh`.
+- **Profiles:** `docker compose --profile dev up` to toggle optional services.
+- **Healthchecks:** add under each service to surface status and restarts.
 
 ---
 
 ## Best Practices
 
-_[This section will be expanded in the next iteration]_
+- **Keep images small:** multi-stage builds, slim/alpine bases, `.dockerignore` to trim context.
+- **Security:** run as non-root, drop capabilities, pin base images, scan (`trivy image app`), sign (cosign), avoid baking secrets into images.
+- **Reliability:** healthchecks, resource limits (`--cpus`, `-m`), explicit tags (avoid `latest` in prod).
+- **Networking:** prefer user-defined bridge for service discovery; publish only needed ports.
+- **Observability:** structured logs, `docker logs -f`, `docker inspect` filters, use `docker events` when debugging.
 
 ---
 
-_Last updated: [Date will be updated as we progress]_
+_Last updated: Jan 1, 2026_
